@@ -15,6 +15,8 @@ import android.graphics.drawable.Drawable;
 import android.hardware.input.InputManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.provider.ContactsContract;
 import android.provider.SyncStateContract;
 import android.support.annotation.NonNull;
@@ -23,6 +25,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.widget.ContentLoadingProgressBar;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
@@ -43,6 +46,7 @@ import android.widget.Toast;
 
 import com.github.fafaldo.fabtoolbar.widget.FABToolbarLayout;
 import com.google.zxing.client.android.CaptureActivity;
+import com.tencent.smtt.sdk.TbsReaderView;
 import com.tencent.smtt.sdk.WebView;
 
 import java.util.regex.Matcher;
@@ -65,12 +69,24 @@ public class MainActivity extends Activity implements View.OnClickListener{
     private AppBarLayout appbar;
     private long exitTime = 0;
     private NotificationRec notificationRec;
+    private Handler handler;
+
+    public static final int CHILD_EXIT = 123;
+    public static int       WELCOME_SHOULD_END = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         getWindow().setFormat(PixelFormat.TRANSLUCENT);
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Intent intent = new Intent(MainActivity.this, WelcomeActivity.class);
+                startActivity(intent);
+            }
+        }).start();
 
        Init();
 
@@ -445,6 +461,24 @@ public class MainActivity extends Activity implements View.OnClickListener{
     protected void onDestroy() {
         super.onDestroy();
         unregisterReceiver(notificationRec);
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        this.WELCOME_SHOULD_END = 999;
+        super.onWindowFocusChanged(hasFocus);
+    }
+
+    @Override
+    protected void onResume() {
+        this.WELCOME_SHOULD_END = 999;
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        this.WELCOME_SHOULD_END = 999;
+        super.onPause();
     }
 
     /**
