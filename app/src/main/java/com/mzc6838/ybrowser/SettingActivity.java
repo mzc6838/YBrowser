@@ -1,4 +1,4 @@
-package com.mzc6838.ybroser;
+package com.mzc6838.ybrowser;
 
 import android.app.Activity;
 import android.os.Bundle;

@@ -25,7 +25,7 @@ import com.google.zxing.BarcodeFormat;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.Result;
 import com.google.zxing.client.android.camera.CameraManager;
-import com.mzc6838.ybroser.R;
+import com.mzc6838.ybrowser.R;
 
 import android.app.Activity;
 import android.content.Intent;

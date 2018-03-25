@@ -18,7 +18,7 @@ package com.google.zxing.client.android;
 
 import com.google.zxing.ResultPoint;
 import com.google.zxing.client.android.camera.CameraManager;
-import com.mzc6838.ybroser.R;
+import com.mzc6838.ybrowser.R;
 
 import android.annotation.SuppressLint;
 import android.content.Context;

@@ -28,7 +28,7 @@ import android.util.Log;
 
 import java.io.Closeable;
 import java.io.IOException;
-import com.mzc6838.ybroser.R;
+import com.mzc6838.ybrowser.R;
 
 /**
  * Manages beeps and vibrations for {@link CaptureActivity}.

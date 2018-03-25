@@ -24,7 +24,7 @@ import com.google.zxing.ResultPoint;
 import com.google.zxing.client.android.camera.CameraManager;
 import com.google.zxing.client.android.result.ResultHandler;
 import com.google.zxing.client.android.result.ResultHandlerFactory;
-import com.mzc6838.ybroser.R;
+import com.mzc6838.ybrowser.R;
 
 import android.app.Activity;
 import android.app.AlertDialog;

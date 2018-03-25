@@ -16,7 +16,7 @@
 
 package com.google.zxing.client.android.result;
 
-import com.mzc6838.ybroser.R;import com.google.zxing.client.result.ParsedResult;
+import com.mzc6838.ybrowser.R;import com.google.zxing.client.result.ParsedResult;
 import com.google.zxing.client.result.TelParsedResult;
 
 import android.app.Activity;

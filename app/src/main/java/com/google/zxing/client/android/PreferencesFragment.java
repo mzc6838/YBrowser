@@ -21,7 +21,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import com.mzc6838.ybroser.R;
+import com.mzc6838.ybrowser.R;
 
 import android.app.AlertDialog;
 import android.content.SharedPreferences;

@@ -1,4 +1,4 @@
-package com.mzc6838.ybroser;
+package com.mzc6838.ybrowser;
 
 import android.Manifest;
 import android.app.Activity;
@@ -506,9 +506,9 @@ public class MainActivity extends Activity implements View.OnClickListener{
     public void sendNotification()
     {
         notificationRec = new NotificationRec();
-        IntentFilter intentFilter = new IntentFilter("com.mzc6838.ybroser.action.SHOW_FABTOOLBAR");
+        IntentFilter intentFilter = new IntentFilter("com.mzc6838.ybrowser.action.SHOW_FABTOOLBAR");
 
-        Intent intent = new Intent("com.mzc6838.ybroser.action.SHOW_FABTOOLBAR");
+        Intent intent = new Intent("com.mzc6838.ybrowser.action.SHOW_FABTOOLBAR");
         PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         this.registerReceiver(notificationRec, intentFilter);
