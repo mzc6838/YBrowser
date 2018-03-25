@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.mzc6838.ybroser.MainActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:background="@color/colorPrimaryDark"
+        android:focusable="true"
+        android:focusableInTouchMode="true"  >
+
+            <EditText
+                android:id="@+id/edit_box"
+                android:layout_width="0pt"
+                android:layout_height="match_parent"
+                android:layout_margin="10dp"
+                android:layout_weight="7"
+                android:background="@drawable/shape"
+                android:hint="搜索或输入网址"
+                android:imeOptions="actionSend"
+                android:maxLines="1"
+                android:singleLine="true"
+                android:textColor="#000000"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"/>
+
+            <ImageView
+                android:id="@+id/QRButton"
+                android:layout_width="0pt"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:adjustViewBounds="true"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:scaleType="centerInside"
+                android:padding="10dp"
+                android:src="@drawable/scanning" />
+
+            <ImageView
+                android:id="@+id/button_more_list"
+                android:layout_width="0pt"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:adjustViewBounds="true"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:scaleType="centerInside"
+                android:padding="10dp"
+                android:src="@drawable/more" />
+
+    </LinearLayout>
+
+    <com.daasuu.ahp.AnimateHorizontalProgressBar
+        android:layout_width="match_parent"
+        android:layout_height="3dip"
+        android:layout_marginTop="60dp"
+        android:id="@+id/progressBar"
+        style="@android:style/Widget.Material.ProgressBar.Horizontal"
+        android:visibility="invisible"
+        android:indeterminate="false"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_weight="100"
+        android:layout_marginTop="60dp">
+
+            <com.tencent.smtt.sdk.WebView
+                android:id="@+id/web_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="100" />
+
+    </LinearLayout>
+
+    <com.github.fafaldo.fabtoolbar.widget.FABToolbarLayout
+        android:id="@+id/fabtoolbar"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:showDuration="600"
+        app:hideDuration="300"
+        app:horizontalMargin="30dp"
+        app:verticalMargin="30dp"
+        app:fadeInFraction="0.3"
+        app:fadeInPivotX="0dp"
+        app:fadeInPivotY="0dp"
+        app:fabId="@+id/fabtoolbar_fab"
+        app:containerId="@+id/fabtoolbar_container"
+        app:fabToolbarId="@+id/fabtoolbar_toolbar">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/fabtoolbar_container"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true">
+
+            <android.support.design.widget.FloatingActionButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/fabtoolbar_fab"
+                app:fabSize="normal"
+                android:scaleType="centerInside"
+                android:src="@drawable/category"
+                android:minHeight="100dp"
+                android:minWidth="100dp"/>
+
+        </RelativeLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:id="@+id/fabtoolbar_toolbar"
+            android:layout_alignParentBottom="true"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/button_back"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:src="@drawable/back"
+                android:scaleType="centerInside"
+                android:padding="15dp"
+                android:background="?android:attr/selectableItemBackground"/>
+
+            <ImageView
+                android:id="@+id/button_forward"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:padding="15dp"
+                android:src="@drawable/forword"
+                android:scaleType="centerInside"
+                android:background="?android:attr/selectableItemBackground"/>
+
+            <ImageView
+                android:id="@+id/button_home"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:padding="15dp"
+                android:src="@drawable/home"
+                android:scaleType="centerInside"
+                android:background="?android:attr/selectableItemBackground"/>
+
+            <ImageView
+                android:id="@+id/button_refresh"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:padding="15dp"
+                android:src="@drawable/refresh"
+                android:scaleType="centerInside"
+                android:background="?android:attr/selectableItemBackground"/>
+
+            <ImageView
+                android:id="@+id/button_hide"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:padding="15dp"
+                android:src="@drawable/less"
+                android:scaleType="centerInside"
+                android:background="?android:attr/selectableItemBackground"/>
+
+        </LinearLayout>
+
+    </com.github.fafaldo.fabtoolbar.widget.FABToolbarLayout>
+
+</android.support.design.widget.CoordinatorLayout>

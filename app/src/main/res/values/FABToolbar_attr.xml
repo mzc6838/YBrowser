@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="showDuration" format="integer"/>      	//show animation duration (in ms), default: 600 ms
+    <attr name="hideDuration" format="integer"/>      	//hide animation duration (in ms), default: 600 ms
+    <attr name="verticalMargin" format="dimension"/>    //FAB vertical margin (in dp), default: 100 px
+    <attr name="horizontalMargin" format="dimension"/>  //FAB horizontal margin (in dp), default: 100 px
+    <attr name="fadeInPivotX" format="dimension"/>    	//toolbar elements translation animation pivot X (in dp), default: 1/2 toolbar width
+    <attr name="fadeInPivotY" format="dimension"/>    	//toolbar elements translation animation pivot Y (in dp), default: 1/2 toolbar height
+    <attr name="fadeInFraction" format="float"/>      	//percent of translation animation, between element position and pivot point (float 0.0-1.0), default: 0.2
+    <attr name="fabId" format="reference"/>			  	//reference to the FAB view
+    <attr name="containerId" format="reference"/>	  	//reference to the FAB container view
+    <attr name="fabToolbarId" format="reference"/>    	//reference to the FAB toolbar view
+    <attr name="fabDrawableAnimationEnabled" format="boolean"/> //enable or disable FAB cross-fade animation, default: true
+</resources>

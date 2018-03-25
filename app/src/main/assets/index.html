@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>首页</title>
+	<style type="text/css">
+		#title{
+			color: #222;
+			font-size: 30pt;
+			margin-top: 3rem;font-family: Consolas;
+		}
+		#form{
+			align-content: center;
+			width: 30rem;
+			height: 3rem;
+			border-radius: 1.5rem;
+			border: 1px solid #DBDBDB;
+			outline: none;
+			font-size: 15pt;
+			padding-left: 2rem;
+			padding-right: 2rem;
+			transition: border 0.5s;
+		}
+		#form:focus{
+			border: 1px solid #000;
+		}
+	</style>
+	<script type="text/javascript">
+		function setBackGround()
+		{
+			var back = document.getElementById("_body");
+			var font = document.getElementById("title");
+			back.style = "transition: all 0.5s";
+			back.style.backgroundColor = "#666666";
+			font.style = "transition: all 0.5s";
+			font.style.color = "#CCC";
+		}
+		
+		function _reset()
+		{
+			var back = document.getElementById("_body");
+			var font = document.getElementById("title");
+			back.style = "transition: all 0.5s";
+			back.style.backgroundColor = "#FFF";
+			font.style = "transition: all 0.5s";
+			font.style.color = "#000";
+		}
+		
+	</script>
+</head>
+
+<body id="_body">
+	<div id="title" align="center">
+		<p>欢迎使用</p>
+	</div>
+	<div align="center">
+		<form>
+			<input id="form" onFocus="javascript:setBackGround()" onBlur="javascript:_reset()" placeholder="输入网址或搜索..."  />
+		</form>
+	</div>
+</body>
+</html>
