@@ -125,4 +125,9 @@
   <string name="result_wifi">Found WLAN Configuration</string>
   <string name="sbc_name">Google Book Search</string>
   <string name="wifi_changing_network">Requesting connection to network\u2026</string>
+  
+  <string name="toolbar_input_hint">搜索或输入网址</string>
+  <string name="QRButton_contentDescription">camera</string>
+  <string name="button_more_list_contentDescription">more list</string>
+  
 </resources>

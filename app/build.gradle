@@ -8,7 +8,7 @@ android {
         minSdkVersion 23
         targetSdkVersion 27
         versionCode 1
-        versionName "1.0"
+        versionName "beta 0.0.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -28,5 +28,4 @@ dependencies {
     compile 'com.android.support:design:27.0.2'
     compile 'com.android.support:appcompat-v7:27.0.2'
     compile 'com.github.fafaldo:fab-toolbar:1.2.0'
-    compile 'com.daasuu:animateHorizontalProgressBar:0.2.4'
 }

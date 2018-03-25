@@ -58,7 +58,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
     private com.tencent.smtt.sdk.WebView webView;
     private InputMethodManager imm;
     private String pageLink = "", pageTitle = "";
-    private com.daasuu.ahp.AnimateHorizontalProgressBar progressBar;
+    private ContentLoadingProgressBar progressBar;
     private FABToolbarLayout fabToolbarLayout;
     private FloatingActionButton fab;
     private Toolbar toolbar;
@@ -86,7 +86,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
         button_more = (ImageView) findViewById(R.id.button_more_list);
         edit_url = (EditText) findViewById(R.id.edit_box);
         webView = (com.tencent.smtt.sdk.WebView) findViewById(R.id.web_view);
-        progressBar = (com.daasuu.ahp.AnimateHorizontalProgressBar) findViewById(R.id.progressBar);
+        progressBar = (ContentLoadingProgressBar) findViewById(R.id.progressBar);
         imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         fabToolbarLayout = (FABToolbarLayout) findViewById(R.id.fabtoolbar);
         fab = (FloatingActionButton) findViewById(R.id.fabtoolbar_fab);
@@ -281,12 +281,12 @@ public class MainActivity extends Activity implements View.OnClickListener{
                 else
                 {
                     progressBar.setVisibility(View.VISIBLE);
-                    progressBar.setProgressWithAnim(i);
+                    progressBar.setProgress(i);
                 }
             }
         });
         webView.canGoBack();
-        webView.loadUrl("http://www.baidu.com");
+        webView.loadUrl("http://toothless.mzc6838.xyz");
         webView.setOnScrollChangeListener(new com.tencent.smtt.sdk.WebView.OnScrollChangeListener() {
             @Override
             public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
