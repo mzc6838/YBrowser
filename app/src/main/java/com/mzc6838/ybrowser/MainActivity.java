@@ -9,7 +9,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.Drawable;
 import android.hardware.input.InputManager;
@@ -17,6 +20,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
 import android.provider.SyncStateContract;
 import android.support.annotation.NonNull;
@@ -35,12 +39,14 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.webkit.JavascriptInterface;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -68,17 +74,15 @@ public class MainActivity extends Activity implements View.OnClickListener{
     private Toolbar toolbar;
     private AppBarLayout appbar;
     private long exitTime = 0;
-    private NotificationRec notificationRec;
-    private Handler handler;
+    private NotificationRec notificationRec, localRec;
+    private LocalBroadcastManager localBroadcastManager;
+    private SharedPreferences sharedPreferences;
 
     public static final int CHILD_EXIT = 123;
     public static int       WELCOME_SHOULD_END = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        getWindow().setFormat(PixelFormat.TRANSLUCENT);
 
         new Thread(new Runnable() {
             @Override
@@ -88,7 +92,17 @@ public class MainActivity extends Activity implements View.OnClickListener{
             }
         }).start();
 
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        getWindow().setFormat(PixelFormat.TRANSLUCENT);
+
+        GetPermission();
+
        Init();
+
+    }
+
+    public void GetPermission(){
 
     }
 
@@ -106,6 +120,8 @@ public class MainActivity extends Activity implements View.OnClickListener{
         imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         fabToolbarLayout = (FABToolbarLayout) findViewById(R.id.fabtoolbar);
         fab = (FloatingActionButton) findViewById(R.id.fabtoolbar_fab);
+        localBroadcastManager = LocalBroadcastManager.getInstance(this);
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         progressBar.bringToFront();
         progressBar.setMax(100);//progressbar进度条前置
@@ -246,11 +262,11 @@ public class MainActivity extends Activity implements View.OnClickListener{
 
          /*webView*/
         com.tencent.smtt.sdk.WebSettings webSettings = webView.getSettings();
-        webSettings.setJavaScriptEnabled(true);
+        webSettings.setJavaScriptEnabled(sharedPreferences.getBoolean("allow_javascript", false));
         webSettings.setAppCacheEnabled(true);
         webSettings.setUseWideViewPort(true);
         webSettings.setLoadWithOverviewMode(true);
-
+        webView.addJavascriptInterface(new InJavaScriptLocalObj(), "java_obj");
         webView.setWebViewClient(new com.tencent.smtt.sdk.WebViewClient(){
             @Override
             public void onReceivedSslError(com.tencent.smtt.sdk.WebView webView,
@@ -277,6 +293,16 @@ public class MainActivity extends Activity implements View.OnClickListener{
                 }
                 return false;
             }
+
+            @Override
+            public void onPageFinished(WebView web, String s) {
+
+                web.loadUrl("javascript:window.java_obj.setColor("
+                        + "document.querySelector('meta[name=\"theme-color\"]').getAttribute('content')"
+                        + ");");
+
+                super.onPageFinished(webView, s);
+            }
         });
 
         webView.setWebChromeClient(new com.tencent.smtt.sdk.WebChromeClient(){
@@ -286,6 +312,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
                 edit_url.setHint(new SpannableString(title));
                 QRButton.setImageDrawable(getResources().getDrawable(R.drawable.scanning));
                 pageTitle = title;
+                pageLink = webView.getUrl();
             }
 
             @Override
@@ -302,7 +329,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
             }
         });
         webView.canGoBack();
-        webView.loadUrl("http://toothless.mzc6838.xyz");
+        webView.loadUrl(sharedPreferences.getString("change_first_page", "http://www.baidu.com"));
         webView.setOnScrollChangeListener(new com.tencent.smtt.sdk.WebView.OnScrollChangeListener() {
             @Override
             public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
@@ -333,6 +360,14 @@ public class MainActivity extends Activity implements View.OnClickListener{
                 return true;
             }
         });
+
+        /*Local Broadcast Rec*/
+        localRec = new NotificationRec();
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction("com.mzc6838.ybrowser.setting.SET_JAVASCRIPT_ENABLED");
+        intentFilter.addAction("com.mzc6838.ybrowser.setting.SET_JAVASCRIPT_DISABLED");
+        localBroadcastManager.registerReceiver(localRec, intentFilter);
+
     }
 
     @Override
@@ -342,25 +377,28 @@ public class MainActivity extends Activity implements View.OnClickListener{
             case (R.id.button_more_list):
             {
                 popMenu(view);
+                button_more.startAnimation(AnimationUtils.loadAnimation(this, R.anim.more_rotate_to));
                 break;
             }
             case(R.id.button_back):   //返回按钮
             {
                 webView.goBack();
                 edit_url.clearFocus();
-                pageLink = webView.getUrl();
+                pageLink = webView.getOriginalUrl();
+                edit_url.setHint(pageTitle = webView.getTitle());
                 break;
             }
             case (R.id.button_forward): //前进按钮
             {
                 webView.goForward();
                 edit_url.clearFocus();
-                pageLink = webView.getUrl();
+                pageLink = webView.getOriginalUrl();
+                edit_url.setHint(pageTitle = webView.getTitle());
                 break;
             }
             case (R.id.button_home):  //返回主页按钮
             {
-                webView.loadUrl("file:///android_asset/index.html");
+                webView.loadUrl(sharedPreferences.getString("change_first_page", "http://www.baidu.com"));
                 pageLink = "";
                 break;
             }
@@ -392,6 +430,9 @@ public class MainActivity extends Activity implements View.OnClickListener{
             if(edit_url.getHint() == "首页")
             {
                 pageLink = "";
+            }else{
+                pageLink = webView.getOriginalUrl();
+                edit_url.setHint(pageTitle = webView.getTitle());
             }
             return true;
         }
@@ -423,7 +464,10 @@ public class MainActivity extends Activity implements View.OnClickListener{
                 {
                     Intent intent = new Intent(MainActivity.this, com.google.zxing.client.android.CaptureActivity.class);
                     startActivity(intent);
+                }else{
+                    Toast.makeText(this, "扫码需要权限...", Toast.LENGTH_SHORT).show();
                 }
+                break;
             }
         }
     }
@@ -534,6 +578,14 @@ public class MainActivity extends Activity implements View.OnClickListener{
                 }
             }
         });
+
+        popupMenu.setOnDismissListener(new PopupMenu.OnDismissListener() {
+            @Override
+            public void onDismiss(PopupMenu menu) {
+                button_more.setAnimation(AnimationUtils.loadAnimation(MainActivity.this, R.anim.more_rotate_back));
+            }
+        });
+
         popupMenu.show();
     }
 
@@ -553,7 +605,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
                 .setContentText("点击这里恢复工具栏")
                 .setWhen(System.currentTimeMillis())
                 .setSmallIcon(R.drawable.notific)
-                .setPriority(NotificationCompat.PRIORITY_MAX)
+                .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.notific))
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true)
                 .setOngoing(true)
@@ -572,10 +624,40 @@ public class MainActivity extends Activity implements View.OnClickListener{
     {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.d("onReceive: ", "1");
-            setFABVisible();
+
+            switch (intent.getAction())
+            {
+                case ("com.mzc6838.ybrowser.action.SHOW_FABTOOLBAR"):
+                {
+                    setFABVisible();
+                    break;
+                }
+                case ("com.mzc6838.ybrowser.setting.SET_JAVASCRIPT_ENABLED"):
+                {
+                    webView.getSettings().setJavaScriptEnabled(true);
+                    break;
+                }
+                case ("com.mzc6838.ybrowser.setting.SET_JAVASCRIPT_DISABLED"):
+                {
+                    webView.getSettings().setJavaScriptEnabled(false);
+                    break;
+                }
+                default:break;
+            }
+
         }
 
+    }
+
+    public final class InJavaScriptLocalObj{
+        @JavascriptInterface
+        public void setColor(String str){
+            Log.d("InJavaScriptLocalObj", str);
+            if(!str.isEmpty())
+            {
+                findViewById(R.id.main_toolbar).setBackgroundColor(Color.parseColor(str));
+            }
+        }
     }
 }
 

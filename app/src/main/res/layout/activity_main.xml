@@ -12,7 +12,9 @@
         android:layout_height="60dp"
         android:background="@color/colorPrimaryDark"
         android:focusable="true"
-        android:focusableInTouchMode="true"  >
+        android:focusableInTouchMode="true"
+        android:elevation="4dp"
+        android:id="@+id/main_toolbar">
 
             <EditText
                 android:id="@+id/edit_box"
@@ -108,7 +110,8 @@
                 android:scaleType="centerInside"
                 android:src="@drawable/category"
                 android:minHeight="100dp"
-                android:minWidth="100dp"/>
+                android:minWidth="100dp"
+                android:elevation="0dp"/>
 
         </RelativeLayout>
 

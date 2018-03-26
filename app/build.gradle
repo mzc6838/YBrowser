@@ -1,6 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
+    signingConfigs {
+        config {
+            keyAlias 'key0'
+            keyPassword 'Mazecheng29'
+            storeFile file('F:/android/all_jks/test.jks')
+            storePassword 'JanzenMa1996'
+        }
+    }
     compileSdkVersion 27
     buildToolsVersion '27.0.3'
     defaultConfig {
@@ -15,6 +23,7 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.config
         }
     }
 }
@@ -28,4 +37,6 @@ dependencies {
     compile 'com.android.support:design:27.0.2'
     compile 'com.android.support:appcompat-v7:27.0.2'
     compile 'com.github.fafaldo:fab-toolbar:1.2.0'
+    compile 'com.android.support:cardview-v7:27.0.2'
+    compile 'com.makeramen:roundedimageview:2.3.0'
 }
