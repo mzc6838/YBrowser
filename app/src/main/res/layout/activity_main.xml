@@ -10,7 +10,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:background="@color/colorPrimaryDark"
+        android:background="#f2f2f2"
         android:focusable="true"
         android:focusableInTouchMode="true"
         android:elevation="4dp"
@@ -68,9 +68,8 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:orientation="vertical"
-        android:layout_weight="100"
         android:layout_marginTop="60dp">
 
             <com.tencent.smtt.sdk.WebView
@@ -100,7 +99,7 @@
             android:layout_height="wrap_content"
             android:id="@+id/fabtoolbar_container"
             android:layout_alignParentBottom="true"
-            android:layout_alignParentRight="true">
+            android:layout_alignParentRight="true" >
 
             <android.support.design.widget.FloatingActionButton
                 android:layout_width="wrap_content"
@@ -111,7 +110,9 @@
                 android:src="@drawable/category"
                 android:minHeight="100dp"
                 android:minWidth="100dp"
-                android:elevation="0dp"/>
+                android:elevation="0dp"
+                app:borderWidth="0dp"
+                app:backgroundTint="#F2F2F2"/>
 
         </RelativeLayout>
 

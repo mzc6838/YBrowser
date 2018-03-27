@@ -11,12 +11,15 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.Icon;
 import android.hardware.input.InputManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -30,6 +33,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v4.widget.ContentLoadingProgressBar;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
@@ -39,12 +43,14 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.JavascriptInterface;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -70,15 +76,15 @@ public class MainActivity extends Activity implements View.OnClickListener{
     private ContentLoadingProgressBar progressBar;
     private FABToolbarLayout fabToolbarLayout;
     private FloatingActionButton fab;
-    private Toolbar toolbar;
     private AppBarLayout appbar;
     private long exitTime = 0;
     private NotificationRec notificationRec, localRec;
     private LocalBroadcastManager localBroadcastManager;
     private SharedPreferences sharedPreferences;
+    private Window mainWindow;
 
-    public static final int CHILD_EXIT = 123;
     public static int       WELCOME_SHOULD_END = 0;
+    private static int      ICON_COLOR         = 0xff000000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,6 +127,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
         fab = (FloatingActionButton) findViewById(R.id.fabtoolbar_fab);
         localBroadcastManager = LocalBroadcastManager.getInstance(this);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        mainWindow = getWindow();
 
         progressBar.bringToFront();
         progressBar.setMax(100);//progressbar进度条前置
@@ -265,10 +272,13 @@ public class MainActivity extends Activity implements View.OnClickListener{
         webSettings.setAppCacheEnabled(true);
         webSettings.setUseWideViewPort(true);
         webSettings.setLoadWithOverviewMode(true);
+        webSettings.setSupportZoom(true);
+        webSettings.setBuiltInZoomControls(true);
+        webSettings.setDisplayZoomControls(false);
         switch (sharedPreferences.getString("change_UA", ""))
         {
             case ("Android"):{
-                webSettings.setUserAgent("Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.109 Mobile Safari/537.36");
+                webSettings.setUserAgent("Mozilla/5.0 (Linux; Android " + Build.VERSION.RELEASE + "; " + Build.MODEL + ") AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.109 Mobile Safari/537.36");
                 break;
             }
             case ("iPhone"):{
@@ -315,6 +325,9 @@ public class MainActivity extends Activity implements View.OnClickListener{
                 web.loadUrl("javascript:window.java_obj.setColor("
                         + "document.querySelector('meta[name=\"theme-color\"]').getAttribute('content')"
                         + ");");
+                pageLink = web.getUrl();
+                pageTitle = web.getTitle();
+                edit_url.setHint(pageTitle);
 
                 super.onPageFinished(webView, s);
             }
@@ -662,7 +675,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
                 }
                 case ("com.mzc6838.ybrowser.SET_UA_ANDROID"):
                 {
-                    webView.getSettings().setUserAgent("Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.109 Mobile Safari/537.36");
+                    webView.getSettings().setUserAgent("Mozilla/5.0 (Linux; Android " + Build.VERSION.RELEASE + "; " + Build.MODEL + ") AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.109 Mobile Safari/537.36");
                     break;
                 }
                 case ("com.mzc6838.ybrowser.SET_UA_IPHONE"):
@@ -672,7 +685,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
                 }
                 case ("com.mzc6838.ybrowser.SET_UA_PC"):
                 {
-                    webView.getSettings().setUserAgent("Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36");
+                    webView.getSettings().setUserAgent("Mozilla/5.0 (X11; Linux) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36");
                     break;
                 }
                 default:break;
@@ -682,15 +695,37 @@ public class MainActivity extends Activity implements View.OnClickListener{
 
     }
 
-    public final class InJavaScriptLocalObj{
+    /**
+     * 获得<meta>中名为"theme-color"的值
+     * */
+    public class InJavaScriptLocalObj{
+
         @JavascriptInterface
         public void setColor(String str){
-            Log.d("InJavaScriptLocalObj", str);
             if(!str.isEmpty())
             {
+                ICON_COLOR = ~mParseColor(str);
                 findViewById(R.id.main_toolbar).setBackgroundColor(Color.parseColor(str));
+                //getWindow().setStatusBarColor(Color.parseColor(str));
+                getWindow().setStatusBarColor(Color.parseColor(str));
+                QRButton.setColorFilter(~mParseColor(str));
+                button_more.setColorFilter(~mParseColor(str));
             }
         }
+
+        public int mParseColor(String colorString){
+            if (colorString.charAt(0) == '#') {
+                long color = Long.parseLong(colorString.substring(1), 16);
+                if (colorString.length() == 7) {
+                    color |= 0x0000000000000000;
+                } else if (colorString.length() != 9) {
+                    throw new IllegalArgumentException("Unknown color");
+                }
+                return (int)color;
+            }
+            return 0;
+        }
+
     }
 }
 
