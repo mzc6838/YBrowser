@@ -17,6 +17,15 @@
             android:summary="http://toothless.mzc6838.xyz"
             android:dialogTitle="修改主页" />
 
+        <ListPreference
+            android:key="change_UA"
+            android:title="浏览器UA标识"
+            android:summary="Android"
+            android:defaultValue="@string/UA_default_value"
+            android:dialogTitle="@string/UA_change_title"
+            android:entries="@array/UA_change_list"
+            android:entryValues="@array/UA_change_value"/>
+
     </PreferenceCategory>
 
     <PreferenceCategory

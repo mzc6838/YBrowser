@@ -129,5 +129,7 @@
   <string name="toolbar_input_hint">搜索或输入网址</string>
   <string name="QRButton_contentDescription">camera</string>
   <string name="button_more_list_contentDescription">more list</string>
+  <string name="UA_change_title">选择浏览器UA标识</string>
+  <string name="UA_default_value">Android</string>
   
 </resources>

@@ -59,4 +59,15 @@
     <item>@string/preferences_front_light_auto</item>
     <item>@string/preferences_front_light_off</item>
   </string-array>
+
+  <string-array name="UA_change_list">
+    <item>Android</item>
+    <item>iPhone</item>
+    <item>PC</item>
+  </string-array>
+  <string-array name="UA_change_value">
+    <item>Android</item>
+    <item>iPhone</item>
+    <item>PC</item>
+  </string-array>
 </resources>

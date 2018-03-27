@@ -39,7 +39,6 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
@@ -266,6 +265,22 @@ public class MainActivity extends Activity implements View.OnClickListener{
         webSettings.setAppCacheEnabled(true);
         webSettings.setUseWideViewPort(true);
         webSettings.setLoadWithOverviewMode(true);
+        switch (sharedPreferences.getString("change_UA", ""))
+        {
+            case ("Android"):{
+                webSettings.setUserAgent("Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.109 Mobile Safari/537.36");
+                break;
+            }
+            case ("iPhone"):{
+                webSettings.setUserAgent("Mozilla/5.0 AppleWebKit/604.4.7 (KHTML, like Gecko) Version/11.0 Mobile/15C202 Safari/604.1");
+                break;
+            }
+            case ("PC"):{
+                webSettings.setUserAgent("Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36");
+                break;
+            }
+            default:break;
+        }
         webView.addJavascriptInterface(new InJavaScriptLocalObj(), "java_obj");
         webView.setWebViewClient(new com.tencent.smtt.sdk.WebViewClient(){
             @Override
@@ -366,6 +381,9 @@ public class MainActivity extends Activity implements View.OnClickListener{
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction("com.mzc6838.ybrowser.setting.SET_JAVASCRIPT_ENABLED");
         intentFilter.addAction("com.mzc6838.ybrowser.setting.SET_JAVASCRIPT_DISABLED");
+        intentFilter.addAction("com.mzc6838.ybrowser.SET_UA_ANDROID");
+        intentFilter.addAction("com.mzc6838.ybrowser.SET_UA_IPHONE");
+        intentFilter.addAction("com.mzc6838.ybrowser.SET_UA_PC");
         localBroadcastManager.registerReceiver(localRec, intentFilter);
 
     }
@@ -640,6 +658,21 @@ public class MainActivity extends Activity implements View.OnClickListener{
                 case ("com.mzc6838.ybrowser.setting.SET_JAVASCRIPT_DISABLED"):
                 {
                     webView.getSettings().setJavaScriptEnabled(false);
+                    break;
+                }
+                case ("com.mzc6838.ybrowser.SET_UA_ANDROID"):
+                {
+                    webView.getSettings().setUserAgent("Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.109 Mobile Safari/537.36");
+                    break;
+                }
+                case ("com.mzc6838.ybrowser.SET_UA_IPHONE"):
+                {
+                    webView.getSettings().setUserAgent("Mozilla/5.0 AppleWebKit/604.4.7 (KHTML, like Gecko) Version/11.0 Mobile/15C202 Safari/604.1");
+                    break;
+                }
+                case ("com.mzc6838.ybrowser.SET_UA_PC"):
+                {
+                    webView.getSettings().setUserAgent("Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36");
                     break;
                 }
                 default:break;
