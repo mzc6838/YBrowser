@@ -54,7 +54,7 @@ public class SettingActivity extends PreferenceActivity implements Preference.On
         javascript_allow.setOnPreferenceChangeListener(this);
         outWindow_allow.setOnPreferenceChangeListener(this);
         changeFirstPage.setOnPreferenceChangeListener(this);
-        changeFirstPage.setSummary(sharedPreferences.getString("change_first_page", "http://toothless.mzc6838.xyz"));
+        changeFirstPage.setSummary(sharedPreferences.getString("change_first_page", "http://www.baidu.com"));
         changeUA.setOnPreferenceChangeListener(this);
         changeUA.setSummary(sharedPreferences.getString("change_UA", "Android"));
         changeSearchEngine.setOnPreferenceChangeListener(this);
@@ -68,7 +68,7 @@ public class SettingActivity extends PreferenceActivity implements Preference.On
                 changeSearchEngine.setSummary("谷歌(google)");
                 break;
             }default:break;
-        };
+        }
 
         mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
