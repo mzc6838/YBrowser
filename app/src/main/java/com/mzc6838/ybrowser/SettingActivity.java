@@ -14,11 +14,13 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 
+import java.util.List;
+
 /**
  * Created by mzc6838 on 2018/3/25.
  */
 
-public class SettingActivity extends PreferenceActivity {
+public class SettingActivity extends PreferenceActivity implements Preference.OnPreferenceChangeListener{
 
     private Toolbar mToolbar;
     private SwitchPreference javascript_allow;
@@ -26,6 +28,8 @@ public class SettingActivity extends PreferenceActivity {
     private EditTextPreference changeFirstPage;
     private SharedPreferences sharedPreferences;
     private ListPreference changeUA;
+    private SwitchPreference outWindow_allow;
+    private ListPreference changeSearchEngine;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,10 +48,41 @@ public class SettingActivity extends PreferenceActivity {
         localBroadcastManager = LocalBroadcastManager.getInstance(this);
         changeFirstPage = (EditTextPreference) findPreference("change_first_page");
         changeUA = (ListPreference) findPreference("change_UA");
+        outWindow_allow = (SwitchPreference) findPreference("allow_outWindow");
+        changeSearchEngine = (ListPreference) findPreference("change_search_engine");
 
-        javascript_allow.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+        javascript_allow.setOnPreferenceChangeListener(this);
+        outWindow_allow.setOnPreferenceChangeListener(this);
+        changeFirstPage.setOnPreferenceChangeListener(this);
+        changeFirstPage.setSummary(sharedPreferences.getString("change_first_page", "http://toothless.mzc6838.xyz"));
+        changeUA.setOnPreferenceChangeListener(this);
+        changeUA.setSummary(sharedPreferences.getString("change_UA", "Android"));
+        changeSearchEngine.setOnPreferenceChangeListener(this);
+        switch (sharedPreferences.getString("change_search_engine", "baidu"))
+        {
+            case("baidu"):{
+                changeSearchEngine.setSummary("百度(baidu)");
+                break;
+            }
+            case ("google"):{
+                changeSearchEngine.setSummary("谷歌(google)");
+                break;
+            }default:break;
+        };
+
+        mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
+            public void onClick(View v) {
+                finish();
+            }
+        });
+    }
+
+    @Override
+    public boolean onPreferenceChange(Preference preference, Object newValue) {
+        switch (preference.getKey())
+        {
+            case ("allow_javascript"):{
                 if(javascript_allow.isChecked() != (Boolean)newValue)
                 {
                     boolean value = (Boolean)newValue;
@@ -63,20 +98,14 @@ public class SettingActivity extends PreferenceActivity {
                 }
                 return true;
             }
-        });
-
-        changeFirstPage.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            @Override
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
+            case ("allow_outWindow"):{
+                return true;
+            }
+            case ("change_first_page"):{
                 changeFirstPage.setSummary(newValue.toString());
                 return true;
             }
-        });
-        changeFirstPage.setSummary(sharedPreferences.getString("change_first_page", "http://toothless.mzc6838.xyz"));
-
-        changeUA.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            @Override
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
+            case ("change_UA"):{
                 switch (newValue.toString())
                 {
                     case ("Android"):
@@ -106,14 +135,17 @@ public class SettingActivity extends PreferenceActivity {
                     default:return true;
                 }
             }
-        });
-        changeUA.setSummary(sharedPreferences.getString("change_UA", "Android"));
-
-        mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
+            case ("change_search_engine"):{
+                if(newValue.toString().equals("google"))
+                {
+                    changeSearchEngine.setSummary("谷歌(google)");
+                }else{
+                    changeSearchEngine.setSummary("百度(baidu)");
+                }
+                changeSearchEngine.setValue(newValue.toString());
+                return true;
             }
-        });
+            default:return false;
+        }
     }
 }

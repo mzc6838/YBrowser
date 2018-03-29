@@ -70,4 +70,14 @@
     <item>iPhone</item>
     <item>PC</item>
   </string-array>
+
+  <string-array name="search_engine_list">
+    <item>百度(baidu)</item>
+    <item>谷歌(google)</item>
+  </string-array>
+  <string-array name="search_engine_value">
+    <item>baidu</item>
+    <item>google</item>
+  </string-array>
+
 </resources>

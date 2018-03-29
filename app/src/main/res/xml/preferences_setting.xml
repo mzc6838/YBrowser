@@ -7,14 +7,19 @@
     <PreferenceCategory
         android:title="基本设置">
 
-        <Preference
+        <ListPreference
             android:title="搜索引擎"
-            android:summary="Baidu(百度)"/>
+            android:summary="Baidu(百度)"
+            android:key="change_search_engine"
+            android:defaultValue="baidu"
+            android:dialogTitle="选择搜索引擎"
+            android:entries="@array/search_engine_list"
+            android:entryValues="@array/search_engine_value" />
 
         <EditTextPreference
             android:key="change_first_page"
             android:title="主页"
-            android:summary="http://toothless.mzc6838.xyz"
+            android:summary=""
             android:dialogTitle="修改主页" />
 
         <ListPreference
@@ -31,13 +36,21 @@
     <PreferenceCategory
         android:title="高级">
 
-        <Preference
-            android:title="隐私设置"/>
 
-        <SwitchPreference
-            android:title="允许JavaScript"
-            android:key="allow_javascript" />
+        <PreferenceScreen
+            android:title="隐私与安全">
+
+            <SwitchPreference
+                android:key="allow_javascript"
+                android:title="允许JavaScript"
+                android:defaultValue="false"/>
+
+            <SwitchPreference
+                android:key="allow_outWindow"
+                android:title="允许网页打开外部应用"
+                android:defaultValue="false"/>
+
+        </PreferenceScreen>
 
     </PreferenceCategory>
-
 </PreferenceScreen>

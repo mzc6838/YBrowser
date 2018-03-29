@@ -12,6 +12,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
@@ -145,7 +146,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
                 {
                     if(isHalfCompleteUrl(edit_url.getText().toString()))
                     {
-                        if(edit_url.getText().toString().startsWith("http://") || edit_url.getText().toString().startsWith("https://"))
+                        if(edit_url.getText().toString().startsWith("http") || edit_url.getText().toString().startsWith("ftp://"))
                         {
                             webView.loadUrl(pageLink = edit_url.getText().toString());
                         }
@@ -157,7 +158,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
                     }
                     else
                     {
-                        webView.loadUrl(pageLink = toBaiduSearch(edit_url.getText().toString()));
+                        webView.loadUrl(pageLink = toSearchResult(edit_url.getText().toString()));
                     }
                     if(imm.isActive() && getCurrentFocus() != null)
                     {
@@ -303,20 +304,34 @@ public class MainActivity extends Activity implements View.OnClickListener{
             @Override
             public boolean shouldOverrideUrlLoading(WebView webView, String url) {
                 //return super.shouldOverrideUrlLoading(webView, s);
-                if(!url.startsWith("http") && !url.startsWith("https"))
+                if(!url.startsWith("http") && !url.startsWith("ftp://"))
                 {
-                    try {
-                        final Intent intent = new Intent(Intent.ACTION_VIEW,
-                                Uri.parse(url));
-                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-                                | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                        startActivity(intent);
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                    if(sharedPreferences.getBoolean("allow_outWindow", false))
+                    {
+                        try {
+                            final Intent intent = new Intent(Intent.ACTION_VIEW,
+                                    Uri.parse(url));
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                                    | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                            startActivity(intent);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        return true;
                     }
-                    return true;
+                    else{
+                        Toast.makeText(MainActivity.this, "已禁止打开外部应用，可在设置中允许", Toast.LENGTH_SHORT).show();
+                        return true;
+                    }
+
                 }
                 return false;
+        }
+
+            @Override
+            public void onPageStarted(WebView webView, String s, Bitmap bitmap) {
+
+                super.onPageStarted(webView, s, bitmap);
             }
 
             @Override
@@ -325,6 +340,15 @@ public class MainActivity extends Activity implements View.OnClickListener{
                 web.loadUrl("javascript:window.java_obj.setColor("
                         + "document.querySelector('meta[name=\"theme-color\"]').getAttribute('content')"
                         + ");");
+//                web.loadUrl("javascript:window.java_obj.setColor(" +
+//                        "function(){" +
+//                        "    var result = document.querySelector('meta[name=\"theme-color\"]').getAttribute('content');" +
+//                        "    if(result == null)" +
+//                        "        return \"false\";" +
+//                        "    else" +
+//                        "        return result;" +
+//                        "});");
+
                 pageLink = web.getUrl();
                 pageTitle = web.getTitle();
                 edit_url.setHint(pageTitle);
@@ -526,7 +550,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
             }
            else
             {
-                webView.loadUrl(toBaiduSearch(t));
+                webView.loadUrl(toSearchResult(t));
                 pageLink = webView.getUrl();
             }
         }
@@ -574,11 +598,17 @@ public class MainActivity extends Activity implements View.OnClickListener{
     * @param text 输入数据
      * @return String
      * */
-    public String toBaiduSearch(String text)
+    public String toSearchResult(String text)
     {
-        String result = "https://www.baidu.com/s?wd=";
-        text.replace(" ", "%20");
-        return result+text;
+        if(sharedPreferences.getString("change_search_engine", "baidu").equals("baidu")){
+            String result = "https://www.baidu.com/s?wd=";
+            text.replace(" ", "+");
+            return result+text;
+        }else{
+            String result = "https://www.google.com/search?q=";
+            text.replace(" ", "+");
+            return result+text;
+        }
     }
 
     /**
