@@ -731,15 +731,31 @@ public class MainActivity extends Activity implements View.OnClickListener{
     public class InJavaScriptLocalObj{
 
         @JavascriptInterface
-        public void setColor(String str){
+        public void setColor(final String str){
             if(!str.isEmpty())
             {
                 ICON_COLOR = ~mParseColor(str);
-                findViewById(R.id.main_toolbar).setBackgroundColor(Color.parseColor(str));
-                //getWindow().setStatusBarColor(Color.parseColor(str));
-                getWindow().setStatusBarColor(Color.parseColor(str));
-                QRButton.setColorFilter(~mParseColor(str));
-                button_more.setColorFilter(~mParseColor(str));
+
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                findViewById(R.id.main_toolbar).setBackgroundColor(Color.parseColor(str));
+                                getWindow().setStatusBarColor(Color.parseColor(str));
+                                QRButton.setColorFilter(~mParseColor(str));
+                                button_more.setColorFilter(~mParseColor(str));
+                            }
+                        });
+                    }
+                }).run();
+
+//                findViewById(R.id.main_toolbar).setBackgroundColor(Color.parseColor(str));
+//                getWindow().setStatusBarColor(Color.parseColor(str));
+//                getWindow().setStatusBarColor(Color.parseColor(str));
+//                QRButton.setColorFilter(~mParseColor(str));
+//                button_more.setColorFilter(~mParseColor(str));
             }
         }
 
