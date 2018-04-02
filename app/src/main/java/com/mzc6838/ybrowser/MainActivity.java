@@ -1,7 +1,6 @@
 package com.mzc6838.ybrowser;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -11,81 +10,71 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.res.ColorStateList;
-import android.graphics.Bitmap;
+import android.content.res.Resources;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.Icon;
-import android.hardware.input.InputManager;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.preference.PreferenceManager;
-import android.provider.ContactsContract;
-import android.provider.SyncStateContract;
 import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v4.graphics.drawable.DrawableCompat;
-import android.support.v4.widget.ContentLoadingProgressBar;
-import android.support.v7.widget.Toolbar;
+import android.support.v4.widget.DrawerLayout;
 import android.text.Editable;
-import android.text.SpannableString;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.webkit.JavascriptInterface;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.github.fafaldo.fabtoolbar.widget.FABToolbarLayout;
 import com.google.zxing.client.android.CaptureActivity;
-import com.tencent.smtt.sdk.TbsReaderView;
-import com.tencent.smtt.sdk.WebView;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static android.view.KeyEvent.KEYCODE_BACK;
 
-public class MainActivity extends Activity implements View.OnClickListener{
+public class MainActivity extends FragmentActivity implements View.OnClickListener, BackHandledFragment.BackHandledInterface {
 
     //private ImageButton QRButton;
     private ImageView button_back, button_forward, button_home, button_refresh, button_hide, QRButton, button_more;
     private EditText edit_url;
-    private com.tencent.smtt.sdk.WebView webView;
     private InputMethodManager imm;
-    private String pageLink = "", pageTitle = "";
-    private ContentLoadingProgressBar progressBar;
+    public static String pageLink = "", pageTitle = "";
     private FABToolbarLayout fabToolbarLayout;
     private FloatingActionButton fab;
-    private AppBarLayout appbar;
     private long exitTime = 0;
-    private NotificationRec notificationRec, localRec;
-    private LocalBroadcastManager localBroadcastManager;
+    private NotificationRec notificationRec;
     private SharedPreferences sharedPreferences;
-    private Window mainWindow;
+    private DrawerLayout drawerLayout;
+    private WebViewFragment webViewFragment;
+    private FrameLayout frameLayout;
+    private FragmentManager fragmentManager;
+    private android.support.v4.app.FragmentTransaction fragmentTransaction;
+    private NotificationManager notificationManager;
+    private BackHandledFragment backHandledFragment;
 
-    public static int       WELCOME_SHOULD_END = 0;
-    private static int      ICON_COLOR         = 0xff000000;
+    public static int WELCOME_SHOULD_END = 0;
+    private static int ICON_COLOR = 0xff000000;
+    private static int BROADCAST_TAG = 0;
+    private boolean hadIntercept;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,11 +93,11 @@ public class MainActivity extends Activity implements View.OnClickListener{
 
         GetPermission();
 
-       Init();
+        Init();
 
     }
 
-    public void GetPermission(){
+    public void GetPermission() {
 
     }
 
@@ -121,49 +110,39 @@ public class MainActivity extends Activity implements View.OnClickListener{
         button_refresh = (ImageView) findViewById(R.id.button_refresh);
         button_more = (ImageView) findViewById(R.id.button_more_list);
         edit_url = (EditText) findViewById(R.id.edit_box);
-        webView = (com.tencent.smtt.sdk.WebView) findViewById(R.id.web_view);
-        progressBar = (ContentLoadingProgressBar) findViewById(R.id.progressBar);
         imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         fabToolbarLayout = (FABToolbarLayout) findViewById(R.id.fabtoolbar);
         fab = (FloatingActionButton) findViewById(R.id.fabtoolbar_fab);
-        localBroadcastManager = LocalBroadcastManager.getInstance(this);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        mainWindow = getWindow();
-
-        progressBar.bringToFront();
-        progressBar.setMax(100);//progressbar进度条前置
+        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        webViewFragment = new WebViewFragment();
+        frameLayout = (FrameLayout) findViewById(R.id.frame_layout);
+        fragmentManager = getSupportFragmentManager();
+        fragmentTransaction = fragmentManager.beginTransaction();
+        notificationManager = (NotificationManager) this.getSystemService(NOTIFICATION_SERVICE);
 
         /*edit_url*/
         edit_url.clearFocus();
         edit_url.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
-                if(actionId == EditorInfo.IME_ACTION_SEND
+                if (actionId == EditorInfo.IME_ACTION_SEND
                         || actionId == EditorInfo.IME_ACTION_DONE
                         || keyEvent != null
                         && KeyEvent.KEYCODE_ENTER == keyEvent.getKeyCode()
-                        && KeyEvent.ACTION_DOWN == keyEvent.getAction())
-                {
-                    if(isHalfCompleteUrl(edit_url.getText().toString()))
-                    {
-                        if(edit_url.getText().toString().startsWith("http") || edit_url.getText().toString().startsWith("ftp://"))
-                        {
-                            webView.loadUrl(pageLink = edit_url.getText().toString());
-                        }
-                        else
-                        {
-                            webView.loadUrl("http://" + (pageLink = edit_url.getText().toString()));
+                        && KeyEvent.ACTION_DOWN == keyEvent.getAction()) {
+                    if (isHalfCompleteUrl(edit_url.getText().toString())) {
+                        if (edit_url.getText().toString().startsWith("http") || edit_url.getText().toString().startsWith("ftp://")) {
+                            webViewFragment.makeWebViewLoadUrl(pageLink = edit_url.getText().toString());
+                        } else {
+                            webViewFragment.makeWebViewLoadUrl("http://" + (pageLink = edit_url.getText().toString()));
                             pageLink = "http://" + pageLink;
                         }
+                    } else {
+                        webViewFragment.makeWebViewLoadUrl(pageLink = toSearchResult(edit_url.getText().toString()));
                     }
-                    else
-                    {
-                        webView.loadUrl(pageLink = toSearchResult(edit_url.getText().toString()));
-                    }
-                    if(imm.isActive() && getCurrentFocus() != null)
-                    {
-                        if(getCurrentFocus().getWindowToken() != null)
-                        {
+                    if (imm.isActive() && getCurrentFocus() != null) {
+                        if (getCurrentFocus().getWindowToken() != null) {
                             imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
                         }
                     }
@@ -175,27 +154,23 @@ public class MainActivity extends Activity implements View.OnClickListener{
         edit_url.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View view, boolean hasFocus) {
-                if(hasFocus)//有焦点时
+                if (hasFocus)//有焦点时
                 {
                     edit_url.setText(pageLink);
-                    if(edit_url.getText().toString().isEmpty())
-                    {
+                    if (edit_url.getText().toString().isEmpty()) {
                         QRButton.setImageDrawable(getResources().getDrawable(R.drawable.scanning));
                         QRButton.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                if(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)
-                                {
+                                if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
                                     Intent intent = new Intent(MainActivity.this, CaptureActivity.class);
                                     startActivityForResult(intent, 111);
-                                }else{
+                                } else {
                                     ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CAMERA}, 1);
                                 }
                             }
                         });
-                    }
-                    else
-                    {
+                    } else {
                         QRButton.setImageDrawable(getResources().getDrawable(R.drawable.delete));
                         QRButton.setOnClickListener(new View.OnClickListener() {
                             @Override
@@ -204,8 +179,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
                             }
                         });
                     }
-                }
-                else//无焦点时
+                } else//无焦点时
                 {
                     edit_url.setText("");
                     edit_url.setHint(pageTitle);
@@ -213,11 +187,10 @@ public class MainActivity extends Activity implements View.OnClickListener{
                     QRButton.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            if(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)
-                            {
+                            if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
                                 Intent intent = new Intent(MainActivity.this, CaptureActivity.class);
                                 startActivityForResult(intent, 111);
-                            }else{
+                            } else {
                                 ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CAMERA}, 1);
                             }
                         }
@@ -233,8 +206,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if(s.length() > 0)
-                {
+                if (s.length() > 0) {
                     QRButton.setImageDrawable(getResources().getDrawable(R.drawable.delete));
                     QRButton.setOnClickListener(new View.OnClickListener() {
                         @Override
@@ -242,18 +214,15 @@ public class MainActivity extends Activity implements View.OnClickListener{
                             edit_url.setText("");
                         }
                     });
-                }
-                else
-                {
+                } else {
                     QRButton.setImageDrawable(getResources().getDrawable(R.drawable.scanning));
                     QRButton.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            if(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)
-                            {
+                            if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
                                 Intent intent = new Intent(MainActivity.this, CaptureActivity.class);
                                 startActivityForResult(intent, 111);
-                            }else{
+                            } else {
                                 ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CAMERA}, 1);
                             }
                         }
@@ -264,132 +233,6 @@ public class MainActivity extends Activity implements View.OnClickListener{
             @Override
             public void afterTextChanged(Editable s) {
 
-            }
-        });
-
-         /*webView*/
-        com.tencent.smtt.sdk.WebSettings webSettings = webView.getSettings();
-        webSettings.setJavaScriptEnabled(sharedPreferences.getBoolean("allow_javascript", false));
-        webSettings.setAppCacheEnabled(true);
-        webSettings.setUseWideViewPort(true);
-        webSettings.setLoadWithOverviewMode(true);
-        webSettings.setSupportZoom(true);
-        webSettings.setBuiltInZoomControls(true);
-        webSettings.setDisplayZoomControls(false);
-        switch (sharedPreferences.getString("change_UA", ""))
-        {
-            case ("Android"):{
-                webSettings.setUserAgent("Mozilla/5.0 (Linux; Android " + Build.VERSION.RELEASE + "; " + Build.MODEL + ") AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.109 Mobile Safari/537.36");
-                break;
-            }
-            case ("iPhone"):{
-                webSettings.setUserAgent("Mozilla/5.0 AppleWebKit/604.4.7 (KHTML, like Gecko) Version/11.0 Mobile/15C202 Safari/604.1");
-                break;
-            }
-            case ("PC"):{
-                webSettings.setUserAgent("Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36");
-                break;
-            }
-            default:break;
-        }
-        webView.addJavascriptInterface(new InJavaScriptLocalObj(), "java_obj");
-        webView.setWebViewClient(new com.tencent.smtt.sdk.WebViewClient(){
-            @Override
-            public void onReceivedSslError(com.tencent.smtt.sdk.WebView webView,
-                                           com.tencent.smtt.export.external.interfaces.SslErrorHandler sslErrorHandler,
-                                           com.tencent.smtt.export.external.interfaces.SslError sslError) {
-                sslErrorHandler.proceed();
-            }
-
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView webView, String url) {
-                //return super.shouldOverrideUrlLoading(webView, s);
-                if(!url.startsWith("http") && !url.startsWith("ftp://"))
-                {
-                    if(sharedPreferences.getBoolean("allow_outWindow", false))
-                    {
-                        try {
-                            final Intent intent = new Intent(Intent.ACTION_VIEW,
-                                    Uri.parse(url));
-                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-                                    | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                            startActivity(intent);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                        return true;
-                    }
-                    else{
-                        Toast.makeText(MainActivity.this, "已禁止打开外部应用，可在设置中允许", Toast.LENGTH_SHORT).show();
-                        return true;
-                    }
-
-                }
-                return false;
-        }
-
-            @Override
-            public void onPageStarted(WebView webView, String s, Bitmap bitmap) {
-
-                super.onPageStarted(webView, s, bitmap);
-            }
-
-            @Override
-            public void onPageFinished(WebView web, String s) {
-
-                web.loadUrl("javascript:window.java_obj.setColor("
-                        + "document.querySelector('meta[name=\"theme-color\"]').getAttribute('content')"
-                        + ");");
-//                web.loadUrl("javascript:window.java_obj.setColor(" +
-//                        "function(){" +
-//                        "    var result = document.querySelector('meta[name=\"theme-color\"]').getAttribute('content');" +
-//                        "    if(result == null)" +
-//                        "        return \"false\";" +
-//                        "    else" +
-//                        "        return result;" +
-//                        "});");
-
-                pageLink = web.getUrl();
-                pageTitle = web.getTitle();
-                edit_url.setHint(pageTitle);
-
-                super.onPageFinished(webView, s);
-            }
-        });
-
-        webView.setWebChromeClient(new com.tencent.smtt.sdk.WebChromeClient(){
-            @Override
-            public void onReceivedTitle(com.tencent.smtt.sdk.WebView webView, String title) {
-                edit_url.setText("");
-                edit_url.setHint(new SpannableString(title));
-                QRButton.setImageDrawable(getResources().getDrawable(R.drawable.scanning));
-                pageTitle = title;
-                pageLink = webView.getUrl();
-            }
-
-            @Override
-            public void onProgressChanged(WebView webView, int i) {
-                if(i == 100)
-                {
-                    progressBar.setVisibility(View.INVISIBLE);
-                }
-                else
-                {
-                    progressBar.setVisibility(View.VISIBLE);
-                    progressBar.setProgress(i);
-                }
-            }
-        });
-        webView.canGoBack();
-        webView.loadUrl(sharedPreferences.getString("change_first_page", "http://www.baidu.com"));
-        webView.setOnScrollChangeListener(new com.tencent.smtt.sdk.WebView.OnScrollChangeListener() {
-            @Override
-            public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
-                if (scrollY - oldScrollY > 20) {
-                    fabToolbarLayout.hide();
-                } else if (scrollY - oldScrollY < -20) {
-                    fabToolbarLayout.show();
-                }
             }
         });
 
@@ -413,52 +256,43 @@ public class MainActivity extends Activity implements View.OnClickListener{
             }
         });
 
-        /*Local Broadcast Rec*/
-        localRec = new NotificationRec();
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction("com.mzc6838.ybrowser.setting.SET_JAVASCRIPT_ENABLED");
-        intentFilter.addAction("com.mzc6838.ybrowser.setting.SET_JAVASCRIPT_DISABLED");
-        intentFilter.addAction("com.mzc6838.ybrowser.SET_UA_ANDROID");
-        intentFilter.addAction("com.mzc6838.ybrowser.SET_UA_IPHONE");
-        intentFilter.addAction("com.mzc6838.ybrowser.SET_UA_PC");
-        localBroadcastManager.registerReceiver(localRec, intentFilter);
+        fragmentTransaction.add(R.id.frame_layout, webViewFragment);
+        fragmentTransaction.show(webViewFragment);
+        fragmentTransaction.commit();
 
     }
 
     @Override
     public void onClick(View view) {
-        switch (view.getId())
-        {
-            case (R.id.button_more_list):
-            {
+        switch (view.getId()) {
+            case (R.id.button_more_list): {
                 popMenu(view);
                 button_more.startAnimation(AnimationUtils.loadAnimation(this, R.anim.more_rotate_to));
                 break;
             }
-            case(R.id.button_back):   //返回按钮
+            case (R.id.button_back):   //返回按钮
             {
-                webView.goBack();
+                webViewFragment.webViewGoBack();
                 edit_url.clearFocus();
-                pageLink = webView.getOriginalUrl();
-                edit_url.setHint(pageTitle = webView.getTitle());
+                pageLink = webViewFragment.getOriginalUrl();
+                edit_url.setHint(pageTitle = webViewFragment.getPageTitle());
                 break;
             }
             case (R.id.button_forward): //前进按钮
             {
-                webView.goForward();
+                webViewFragment.webViewGoForward();
                 edit_url.clearFocus();
-                pageLink = webView.getOriginalUrl();
-                edit_url.setHint(pageTitle = webView.getTitle());
+                pageLink = webViewFragment.getOriginalUrl();
+                edit_url.setHint(pageTitle = webViewFragment.getPageTitle());
                 break;
             }
             case (R.id.button_home):  //返回主页按钮
             {
-                webView.loadUrl(sharedPreferences.getString("change_first_page", "http://www.baidu.com"));
+                webViewFragment.makeWebViewLoadUrl(sharedPreferences.getString("change_first_page", "http://www.baidu.com"));
                 pageLink = "";
                 break;
             }
-            case (R.id.fabtoolbar_fab):
-            {
+            case (R.id.fabtoolbar_fab): {
                 fabToolbarLayout.show();
                 break;
             }
@@ -469,57 +303,48 @@ public class MainActivity extends Activity implements View.OnClickListener{
             }
             case (R.id.button_refresh): //刷新按钮
             {
-                webView.loadUrl(webView.getUrl());
+                webViewFragment.makeWebViewLoadUrl(webViewFragment.getPageUrl());
                 break;
             }
-            default:break;
+            default:
+                break;
         }
     }
 
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if((keyCode == KEYCODE_BACK) && webView.canGoBack())
-        {
-            webView.goBack();
-            edit_url.clearFocus();
-            if(edit_url.getHint() == "首页")
-            {
-                pageLink = "";
-            }else{
-                pageLink = webView.getOriginalUrl();
-                edit_url.setHint(pageTitle = webView.getTitle());
-            }
-            return true;
-        }
-        else if((keyCode == KEYCODE_BACK) && !webView.canGoBack())
-        {
-            if((System.currentTimeMillis() - exitTime) > 2000)
-            {
-                Toast.makeText(this, "再按一次退出程序", Toast.LENGTH_SHORT).show();
-                exitTime = System.currentTimeMillis();
-            }
-            else
-            {
-                this.finish();
-                ((NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE)).cancelAll();
-                System.exit(0);
-            }
-            return true;
-        }
-        return super.onKeyDown(keyCode, event);
-    }
+//    @Override
+//    public boolean onKeyDown(int keyCode, KeyEvent event) {
+//        if ((keyCode == KEYCODE_BACK) && webView.canGoBack()) {
+//            webView.goBack();
+//            edit_url.clearFocus();
+//            if (edit_url.getHint() == "首页") {
+//                pageLink = "";
+//            } else {
+//                pageLink = webView.getOriginalUrl();
+//                edit_url.setHint(pageTitle = webViewFragment.getPageTitle());
+//            }
+//            return true;
+//        } else if ((keyCode == KEYCODE_BACK) && !webView.canGoBack()) {
+//            if ((System.currentTimeMillis() - exitTime) > 2000) {
+//                Toast.makeText(this, "再按一次退出程序", Toast.LENGTH_SHORT).show();
+//                exitTime = System.currentTimeMillis();
+//            } else {
+//                this.finish();
+//                ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).cancelAll();
+//                System.exit(0);
+//            }
+//            return true;
+//        }
+//        return super.onKeyDown(keyCode, event);
+//    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode)
-        {
-            case 1:
-            {
-                if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                {
+        switch (requestCode) {
+            case 1: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     Intent intent = new Intent(MainActivity.this, com.google.zxing.client.android.CaptureActivity.class);
                     startActivity(intent);
-                }else{
+                } else {
                     Toast.makeText(this, "扫码需要权限...", Toast.LENGTH_SHORT).show();
                 }
                 break;
@@ -530,28 +355,21 @@ public class MainActivity extends Activity implements View.OnClickListener{
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(resultCode == RESULT_OK && requestCode == 111)
-        {
+        if (resultCode == RESULT_OK && requestCode == 111) {
             String t;
-            if(isHalfCompleteUrl((t = data.getStringExtra("codedContent"))))
-            {
-                if(t.startsWith("http://") || t.startsWith("https://"))
-                {
+            if (isHalfCompleteUrl((t = data.getStringExtra("codedContent")))) {
+                if (t.startsWith("http://") || t.startsWith("https://")) {
                     edit_url.setText(t);
                     pageLink = t;
-                }
-                else
-                {
+                } else {
                     t = "http://" + t;
                     edit_url.setText(t);
                     pageLink = t;
                 }
-                webView.loadUrl(pageLink);
-            }
-           else
-            {
-                webView.loadUrl(toSearchResult(t));
-                pageLink = webView.getUrl();
+                webViewFragment.makeWebViewLoadUrl(pageLink);
+            } else {
+                webViewFragment.makeWebViewLoadUrl(toSearchResult(t));
+                pageLink = webViewFragment.getPageUrl();
             }
         }
     }
@@ -559,7 +377,12 @@ public class MainActivity extends Activity implements View.OnClickListener{
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(notificationRec);
+        if (BROADCAST_TAG == 1) {
+            Log.d("Broadcast ", "onDestroy: 1");
+            unregisterReceiver(notificationRec);
+            BROADCAST_TAG = 0;
+        }
+        notificationManager.cancelAll();
     }
 
     @Override
@@ -580,62 +403,76 @@ public class MainActivity extends Activity implements View.OnClickListener{
         super.onPause();
     }
 
+    @Override
+    public void setSelectedFragment(BackHandledFragment selectedFragment) {
+        this.backHandledFragment = selectedFragment;
+    }
+
+    @Override
+    public void onBackPressed() {
+        if(backHandledFragment == null || !backHandledFragment.onBackPressed()){
+            if(getSupportFragmentManager().getBackStackEntryCount() == 0){
+                super.onBackPressed();
+            }else{
+                getSupportFragmentManager().popBackStack();
+            }
+        }
+    }
+
     /**
      * 正则表达式判断输入url
-     *@param text 被检测的输入数据;
-     *@return   true  是一个链接
-     *          false 不是一个链接
-     * */
-    public static boolean isHalfCompleteUrl(String text)
-    {
+     *
+     * @param text 被检测的输入数据;
+     * @return true  是一个链接
+     * false 不是一个链接
+     */
+    public static boolean isHalfCompleteUrl(String text) {
         Pattern pattern = Pattern.compile("(([a-zA-Z0-9\\._-]+\\.[a-zA-Z]{2,6})|([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}))(:[0-9]{1,4})*(/[a-zA-Z0-9\\&%_\\./-~-]*)?", Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(text);
         return matcher.find();
     }
 
     /**
-    * 生成百度搜索链接
-    * @param text 输入数据
+     * 生成百度搜索链接
+     *
+     * @param text 输入数据
      * @return String
-     * */
-    public String toSearchResult(String text)
-    {
-        if(sharedPreferences.getString("change_search_engine", "baidu").equals("baidu")){
+     */
+    public String toSearchResult(String text) {
+        if (sharedPreferences.getString("change_search_engine", "baidu").equals("baidu")) {
             String result = "https://www.baidu.com/s?wd=";
             text.replace(" ", "+");
-            return result+text;
-        }else{
+            return result + text;
+        } else {
             String result = "https://www.google.com/search?q=";
             text.replace(" ", "+");
-            return result+text;
+            return result + text;
         }
     }
 
     /**
      * 右上角菜单弹出
+     *
      * @param v View
-     * */
-    private void popMenu(View v)
-    {
+     */
+    private void popMenu(View v) {
         final PopupMenu popupMenu = new PopupMenu(this, v);
         popupMenu.getMenuInflater().inflate(R.menu.main_menu, popupMenu.getMenu());
         popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
-                switch(item.getItemId())
-                {
-                    case(R.id.setting):
-                    {
+                switch (item.getItemId()) {
+                    case (R.id.setting): {
                         Intent intent = new Intent(MainActivity.this, SettingActivity.class);
                         startActivity(intent);
                         return true;
                     }
-                    case (R.id.help):
-                    {
+                    case (R.id.help): {
                         Log.d("onMenuItemClick:  ", "help");
                         return true;
                     }
-                    default:return false;
+                    default:
+                        return false;
                 }
             }
         });
@@ -650,8 +487,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
         popupMenu.show();
     }
 
-    public void sendNotification()
-    {
+    public void sendNotification() {
         notificationRec = new NotificationRec();
         IntentFilter intentFilter = new IntentFilter("com.mzc6838.ybrowser.action.SHOW_FABTOOLBAR");
 
@@ -659,8 +495,9 @@ public class MainActivity extends Activity implements View.OnClickListener{
         PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         this.registerReceiver(notificationRec, intentFilter);
+        BROADCAST_TAG = 1;
 
-        NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         Notification notification = new NotificationCompat.Builder(this)
                 .setContentTitle("工具栏已隐藏")
                 .setContentText("点击这里恢复工具栏")
@@ -671,107 +508,88 @@ public class MainActivity extends Activity implements View.OnClickListener{
                 .setAutoCancel(true)
                 .setOngoing(true)
                 .build();
-        manager.notify(1, notification);
+        notificationManager.notify(1, notification);
         Toast.makeText(this, "工具栏已隐藏，在通知中可以开启哦~", Toast.LENGTH_SHORT).show();
     }
 
-    public void setFABVisible()
-    {
+    public void setFABVisible() {
         this.fabToolbarLayout.setVisibility(View.VISIBLE);
         this.fab.setVisibility(View.VISIBLE);
     }
 
-    public class NotificationRec extends BroadcastReceiver
-    {
+    public class NotificationRec extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
 
-            switch (intent.getAction())
-            {
-                case ("com.mzc6838.ybrowser.action.SHOW_FABTOOLBAR"):
-                {
+            switch (intent.getAction()) {
+                case ("com.mzc6838.ybrowser.action.SHOW_FABTOOLBAR"): {
                     setFABVisible();
                     break;
                 }
-                case ("com.mzc6838.ybrowser.setting.SET_JAVASCRIPT_ENABLED"):
-                {
-                    webView.getSettings().setJavaScriptEnabled(true);
+                default:
                     break;
-                }
-                case ("com.mzc6838.ybrowser.setting.SET_JAVASCRIPT_DISABLED"):
-                {
-                    webView.getSettings().setJavaScriptEnabled(false);
-                    break;
-                }
-                case ("com.mzc6838.ybrowser.SET_UA_ANDROID"):
-                {
-                    webView.getSettings().setUserAgent("Mozilla/5.0 (Linux; Android " + Build.VERSION.RELEASE + "; " + Build.MODEL + ") AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.109 Mobile Safari/537.36");
-                    break;
-                }
-                case ("com.mzc6838.ybrowser.SET_UA_IPHONE"):
-                {
-                    webView.getSettings().setUserAgent("Mozilla/5.0 AppleWebKit/604.4.7 (KHTML, like Gecko) Version/11.0 Mobile/15C202 Safari/604.1");
-                    break;
-                }
-                case ("com.mzc6838.ybrowser.SET_UA_PC"):
-                {
-                    webView.getSettings().setUserAgent("Mozilla/5.0 (X11; Linux) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36");
-                    break;
-                }
-                default:break;
             }
 
         }
 
     }
 
-    /**
-     * 获得<meta>中名为"theme-color"的值
-     * */
-    public class InJavaScriptLocalObj{
+    public void setFABShow() {
+        this.fabToolbarLayout.show();
+    }
 
-        @JavascriptInterface
-        public void setColor(final String str){
-            if(!str.isEmpty())
-            {
-                ICON_COLOR = ~mParseColor(str);
+    public void setFABHide() {
+        this.fabToolbarLayout.hide();
+    }
 
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                findViewById(R.id.main_toolbar).setBackgroundColor(Color.parseColor(str));
-                                getWindow().setStatusBarColor(Color.parseColor(str));
-                                QRButton.setColorFilter(~mParseColor(str));
-                                button_more.setColorFilter(~mParseColor(str));
-                            }
-                        });
-                    }
-                }).run();
+    public void setColor(final String str) {
+        if (!str.isEmpty()) {
+            ICON_COLOR = ~mParseColor(str);
 
-//                findViewById(R.id.main_toolbar).setBackgroundColor(Color.parseColor(str));
-//                getWindow().setStatusBarColor(Color.parseColor(str));
-//                getWindow().setStatusBarColor(Color.parseColor(str));
-//                QRButton.setColorFilter(~mParseColor(str));
-//                button_more.setColorFilter(~mParseColor(str));
-            }
-        }
-
-        public int mParseColor(String colorString){
-            if (colorString.charAt(0) == '#') {
-                long color = Long.parseLong(colorString.substring(1), 16);
-                if (colorString.length() == 7) {
-                    color |= 0x0000000000000000;
-                } else if (colorString.length() != 9) {
-                    throw new IllegalArgumentException("Unknown color");
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            findViewById(R.id.main_toolbar).setBackgroundColor(Color.parseColor(str));
+                            getWindow().setStatusBarColor(Color.parseColor(str));
+                            QRButton.setColorFilter(~mParseColor(str));
+                            button_more.setColorFilter(~mParseColor(str));
+                        }
+                    });
                 }
-                return (int)color;
-            }
-            return 0;
+            }).run();
         }
+    }
 
+    public int mParseColor(String colorString) {
+        if (colorString.charAt(0) == '#') {
+            long color = Long.parseLong(colorString.substring(1), 16);
+            if (colorString.length() == 7) {
+                color |= 0x0000000000000000;
+            } else if (colorString.length() != 9) {
+                throw new IllegalArgumentException("Unknown color");
+            }
+            return (int) color;
+        }
+        return 0;
+    }
+
+    public void setEdit_urlText(String str) {
+        edit_url.setText(str);
+    }
+
+    public void setEdit_urlHint(String str) {
+        edit_url.setHint(str);
+    }
+
+    public void setQRButtonImageDrawable(Drawable d) {
+        QRButton.setImageDrawable(d);
+    }
+
+    public interface BackHandledInterface{
+        void setSelectedFragment(BackHandledFragment selectedFragment);
     }
 }
 

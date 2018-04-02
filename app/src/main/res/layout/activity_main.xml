@@ -1,20 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v4.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:id="@+id/drawer_layout"
     tools:context="com.mzc6838.ybrowser.MainActivity">
 
-    <LinearLayout
+    <android.support.design.widget.CoordinatorLayout
         android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:background="#f2f2f2"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
-        android:elevation="4dp"
-        android:id="@+id/main_toolbar">
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        tools:context="com.mzc6838.ybrowser.MainActivity">
+
+        <LinearLayout
+            android:id="@+id/main_toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:background="#f2f2f2"
+            android:elevation="4dp"
+            android:focusable="true"
+            android:focusableInTouchMode="true">
 
             <EditText
                 android:id="@+id/edit_box"
@@ -26,10 +33,10 @@
                 android:hint="@string/toolbar_input_hint"
                 android:imeOptions="actionSend"
                 android:maxLines="1"
-                android:singleLine="true"
-                android:textColor="#000000"
                 android:paddingLeft="10dp"
-                android:paddingRight="10dp"/>
+                android:paddingRight="10dp"
+                android:singleLine="true"
+                android:textColor="#000000" />
 
             <ImageView
                 android:id="@+id/QRButton"
@@ -38,10 +45,10 @@
                 android:layout_weight="1"
                 android:adjustViewBounds="true"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:scaleType="centerInside"
+                android:contentDescription="@string/QRButton_contentDescription"
                 android:padding="10dp"
-                android:src="@drawable/scanning"
-                android:contentDescription="@string/QRButton_contentDescription"/>
+                android:scaleType="centerInside"
+                android:src="@drawable/scanning" />
 
             <ImageView
                 android:id="@+id/button_more_list"
@@ -50,131 +57,174 @@
                 android:layout_weight="1"
                 android:adjustViewBounds="true"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:scaleType="centerInside"
+                android:contentDescription="@string/button_more_list_contentDescription"
                 android:padding="10dp"
-                android:src="@drawable/more"
-                android:contentDescription="@string/button_more_list_contentDescription"/>
-
-    </LinearLayout>
-
-    <android.support.v4.widget.ContentLoadingProgressBar
-        android:layout_width="match_parent"
-        android:layout_height="3dip"
-        android:layout_marginTop="60dp"
-        android:id="@+id/progressBar"
-        style="@android:style/Widget.Material.ProgressBar.Horizontal"
-        android:visibility="invisible"
-        android:indeterminate="false"/>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:layout_marginTop="60dp">
-
-            <com.tencent.smtt.sdk.WebView
-                android:id="@+id/web_view"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-
-    </LinearLayout>
-
-    <com.github.fafaldo.fabtoolbar.widget.FABToolbarLayout
-        android:id="@+id/fabtoolbar"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:showDuration="600"
-        app:hideDuration="300"
-        app:horizontalMargin="30dp"
-        app:verticalMargin="30dp"
-        app:fadeInFraction="0.3"
-        app:fadeInPivotX="0dp"
-        app:fadeInPivotY="0dp"
-        app:fabId="@+id/fabtoolbar_fab"
-        app:containerId="@+id/fabtoolbar_container"
-        app:fabToolbarId="@+id/fabtoolbar_toolbar">
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/fabtoolbar_container"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentRight="true" >
-
-            <android.support.design.widget.FloatingActionButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/fabtoolbar_fab"
-                app:fabSize="normal"
                 android:scaleType="centerInside"
-                android:src="@drawable/category"
-                android:minHeight="100dp"
-                android:minWidth="100dp"
-                android:elevation="0dp"
-                app:borderWidth="0dp"
-                app:backgroundTint="#F2F2F2"/>
-
-        </RelativeLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:id="@+id/fabtoolbar_toolbar"
-            android:layout_alignParentBottom="true"
-            android:orientation="horizontal">
-
-            <ImageView
-                android:id="@+id/button_back"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:src="@drawable/back"
-                android:scaleType="centerInside"
-                android:padding="15dp"
-                android:background="?android:attr/selectableItemBackground"/>
-
-            <ImageView
-                android:id="@+id/button_forward"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:padding="15dp"
-                android:src="@drawable/forword"
-                android:scaleType="centerInside"
-                android:background="?android:attr/selectableItemBackground"/>
-
-            <ImageView
-                android:id="@+id/button_home"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:padding="15dp"
-                android:src="@drawable/home"
-                android:scaleType="centerInside"
-                android:background="?android:attr/selectableItemBackground"/>
-
-            <ImageView
-                android:id="@+id/button_refresh"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:padding="15dp"
-                android:src="@drawable/refresh"
-                android:scaleType="centerInside"
-                android:background="?android:attr/selectableItemBackground"/>
-
-            <ImageView
-                android:id="@+id/button_hide"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:padding="15dp"
-                android:src="@drawable/less"
-                android:scaleType="centerInside"
-                android:background="?android:attr/selectableItemBackground"/>
+                android:src="@drawable/more" />
 
         </LinearLayout>
 
-    </com.github.fafaldo.fabtoolbar.widget.FABToolbarLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="60dp"
+            android:orientation="vertical">
 
-</android.support.design.widget.CoordinatorLayout>
+            <!--<android.support.v4.view.Fragment-->
+                <!--android:id="@+id/main_webview_fragment"-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="match_parent"-->
+                <!--android:name="com.mzc6838.ybrowser.WebViewFragment"-->
+                <!--tools:layout="@layout/main_webview_fragment" />-->
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/frame_layout"/>
+
+        </LinearLayout>
+
+        <com.github.fafaldo.fabtoolbar.widget.FABToolbarLayout
+            android:id="@+id/fabtoolbar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:containerId="@+id/fabtoolbar_container"
+            app:fabId="@+id/fabtoolbar_fab"
+            app:fabToolbarId="@+id/fabtoolbar_toolbar"
+            app:fadeInFraction="0.3"
+            app:fadeInPivotX="0dp"
+            app:fadeInPivotY="0dp"
+            app:hideDuration="300"
+            app:horizontalMargin="30dp"
+            app:showDuration="600"
+            app:verticalMargin="30dp">
+
+            <RelativeLayout
+                android:id="@+id/fabtoolbar_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentRight="true">
+
+                <android.support.design.widget.FloatingActionButton
+                    android:id="@+id/fabtoolbar_fab"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:elevation="0dp"
+                    android:minHeight="100dp"
+                    android:minWidth="100dp"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/category"
+                    app:backgroundTint="#F2F2F2"
+                    app:borderWidth="0dp"
+                    app:fabSize="normal" />
+
+            </RelativeLayout>
+
+            <LinearLayout
+                android:id="@+id/fabtoolbar_toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_alignParentBottom="true"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/button_back"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:padding="15dp"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/back" />
+
+                <ImageView
+                    android:id="@+id/button_forward"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:padding="15dp"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/forword" />
+
+                <ImageView
+                    android:id="@+id/button_home"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:padding="15dp"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/home" />
+
+                <ImageView
+                    android:id="@+id/button_refresh"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:padding="15dp"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/refresh" />
+
+                <ImageView
+                    android:id="@+id/button_hide"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:padding="15dp"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/less" />
+
+            </LinearLayout>
+
+        </com.github.fafaldo.fabtoolbar.widget.FABToolbarLayout>
+
+    </android.support.design.widget.CoordinatorLayout>
+
+    <LinearLayout
+        android:layout_width="300dp"
+        android:layout_height="match_parent"
+        android:background="#f2f2f2"
+        android:layout_gravity="start">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:text="111"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="300dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:background="#f2f2f2"
+        android:orientation="vertical">
+
+        <android.support.design.widget.TabLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            app:tabMode="fixed">
+
+            <android.support.design.widget.TabItem
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="书签" />
+
+            <android.support.design.widget.TabItem
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="历史" />
+
+        </android.support.design.widget.TabLayout>
+
+        <android.support.v4.view.ViewPager
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </LinearLayout>
+
+</android.support.v4.widget.DrawerLayout>

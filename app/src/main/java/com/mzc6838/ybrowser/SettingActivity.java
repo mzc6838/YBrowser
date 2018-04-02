@@ -20,7 +20,7 @@ import java.util.List;
  * Created by mzc6838 on 2018/3/25.
  */
 
-public class SettingActivity extends PreferenceActivity implements Preference.OnPreferenceChangeListener{
+public class SettingActivity extends PreferenceActivity implements Preference.OnPreferenceChangeListener {
 
     private Toolbar mToolbar;
     private SwitchPreference javascript_allow;
@@ -40,8 +40,7 @@ public class SettingActivity extends PreferenceActivity implements Preference.On
         init();
     }
 
-    public void init()
-    {
+    public void init() {
         mToolbar = (Toolbar) findViewById(R.id.toolbar_setting);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         javascript_allow = (SwitchPreference) findPreference("allow_javascript");
@@ -58,16 +57,17 @@ public class SettingActivity extends PreferenceActivity implements Preference.On
         changeUA.setOnPreferenceChangeListener(this);
         changeUA.setSummary(sharedPreferences.getString("change_UA", "Android"));
         changeSearchEngine.setOnPreferenceChangeListener(this);
-        switch (sharedPreferences.getString("change_search_engine", "baidu"))
-        {
-            case("baidu"):{
+        switch (sharedPreferences.getString("change_search_engine", "baidu")) {
+            case ("baidu"): {
                 changeSearchEngine.setSummary("百度(baidu)");
                 break;
             }
-            case ("google"):{
+            case ("google"): {
                 changeSearchEngine.setSummary("谷歌(google)");
                 break;
-            }default:break;
+            }
+            default:
+                break;
         }
 
         mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
@@ -80,72 +80,66 @@ public class SettingActivity extends PreferenceActivity implements Preference.On
 
     @Override
     public boolean onPreferenceChange(Preference preference, Object newValue) {
-        switch (preference.getKey())
-        {
-            case ("allow_javascript"):{
-                if(javascript_allow.isChecked() != (Boolean)newValue)
-                {
-                    boolean value = (Boolean)newValue;
+        switch (preference.getKey()) {
+            case ("allow_javascript"): {
+                if (javascript_allow.isChecked() != (Boolean) newValue) {
+                    boolean value = (Boolean) newValue;
                     javascript_allow.setChecked(value);
-                    if(value)
-                    {
+                    if (value) {
                         Intent intent = new Intent("com.mzc6838.ybrowser.setting.SET_JAVASCRIPT_ENABLED");
                         localBroadcastManager.sendBroadcast(intent);
-                    }else{
+                    } else {
                         Intent intent = new Intent("com.mzc6838.ybrowser.setting.SET_JAVASCRIPT_DISABLED");
                         localBroadcastManager.sendBroadcast(intent);
                     }
                 }
                 return true;
             }
-            case ("allow_outWindow"):{
+            case ("allow_outWindow"): {
                 return true;
             }
-            case ("change_first_page"):{
+            case ("change_first_page"): {
                 changeFirstPage.setSummary(newValue.toString());
                 return true;
             }
-            case ("change_UA"):{
-                switch (newValue.toString())
-                {
-                    case ("Android"):
-                    {
+            case ("change_UA"): {
+                switch (newValue.toString()) {
+                    case ("Android"): {
                         Intent intent = new Intent("com.mzc6838.ybrowser.SET_UA_ANDROID");
                         localBroadcastManager.sendBroadcast(intent);
                         changeUA.setValue("Android");
                         changeUA.setSummary(newValue.toString());
                         return true;
                     }
-                    case("iPhone"):
-                    {
+                    case ("iPhone"): {
                         Intent intent = new Intent("com.mzc6838.ybrowser.SET_UA_IPHONE");
                         localBroadcastManager.sendBroadcast(intent);
                         changeUA.setValue("iPhone");
                         changeUA.setSummary(newValue.toString());
                         return true;
                     }
-                    case("PC"):
-                    {
+                    case ("PC"): {
                         Intent intent = new Intent("com.mzc6838.ybrowser.SET_UA_PC");
                         localBroadcastManager.sendBroadcast(intent);
                         changeUA.setValue("PC");
                         changeUA.setSummary(newValue.toString());
                         return true;
                     }
-                    default:return true;
+                    default:
+                        return true;
                 }
             }
-            case ("change_search_engine"):{
-                if(newValue.toString().equals("google"))
-                {
+            case ("change_search_engine"): {
+                if (newValue.toString().equals("google")) {
                     changeSearchEngine.setSummary("谷歌(google)");
-                }else{
+                } else {
                     changeSearchEngine.setSummary("百度(baidu)");
                 }
                 changeSearchEngine.setValue(newValue.toString());
                 return true;
             }
-            default:return false;
+            default:
+                return false;
         }
     }
 }
