@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -17,6 +18,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.widget.ContentLoadingProgressBar;
 import android.text.SpannableString;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,8 +44,8 @@ public class WebViewFragment extends BackHandledFragment {
     private LocalBroadcastManager localBroadcastManager;
     private BroadcastRec broadcastRec;
     private View view;
-    private ImageView QRButton;
     private long exitTime = 0;
+    private Bitmap pageIcon;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -61,7 +63,6 @@ public class WebViewFragment extends BackHandledFragment {
 
         webview = (WebView) view.findViewById(R.id.main_webview);
         progressBar = (ContentLoadingProgressBar) view.findViewById(R.id.progressBar);
-        QRButton = (ImageView) view.findViewById(R.id.QRButton);
         localBroadcastManager = LocalBroadcastManager.getInstance(mainActivity);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mainActivity);
 
@@ -141,7 +142,12 @@ public class WebViewFragment extends BackHandledFragment {
 
                 mainActivity.pageLink = web.getUrl();
                 mainActivity.pageTitle = web.getTitle();
-                ((EditText) view.findViewById(R.id.edit_box)).setHint(mainActivity.pageTitle);
+//                ((EditText) view.findViewById(R.id.edit_box)).setHint(mainActivity.pageTitle);
+                ((EditText)mainActivity.findViewById(R.id.edit_box)).setHint(mainActivity.pageTitle);
+
+                //mainActivity.addWindowInfo(web.getTitle(), web.getUrl(), pageIcon);
+
+                mainActivity.setWindowInfo(mainActivity.pageTitle, mainActivity.pageLink, pageIcon, mainActivity.getPositionNow());
 
                 super.onPageFinished(webview, s);
             }
@@ -151,7 +157,8 @@ public class WebViewFragment extends BackHandledFragment {
             public void onReceivedTitle(com.tencent.smtt.sdk.WebView webView, String title) {
                 mainActivity.setEdit_urlText("");
                 mainActivity.setEdit_urlHint(title);
-                mainActivity.setQRButtonImageDrawable(getResources().getDrawable(R.drawable.scanning));
+                if(isAdded())
+                    mainActivity.setQRButtonImageDrawable(getResources().getDrawable(R.drawable.scanning));
                 mainActivity.pageTitle = title;
                 mainActivity.pageLink = webView.getUrl();
             }
@@ -164,6 +171,24 @@ public class WebViewFragment extends BackHandledFragment {
                     progressBar.setVisibility(View.VISIBLE);
                     progressBar.setProgress(i);
                 }
+            }
+
+            @Override
+            public void onReceivedIcon(WebView webView, Bitmap bitmap) {
+                pageIcon = bitmap;
+                int width = bitmap.getWidth();
+                int height = bitmap.getHeight();
+
+                int newWH = dp2px(35);
+
+                float scaleWidth = ((float)newWH) / width;
+                float scaleHeight = ((float)newWH) / height;
+
+                Matrix matrix = new Matrix();
+                matrix.postScale(scaleWidth, scaleHeight);
+
+                mainActivity.setWindowInfo(getPageTitle(), getPageUrl(), Bitmap.createBitmap(bitmap, 0, 0, width, height, matrix, true), mainActivity.getPositionNow());
+                super.onReceivedIcon(webView, bitmap);
             }
         });
         webview.canGoBack();
@@ -282,4 +307,13 @@ public class WebViewFragment extends BackHandledFragment {
     public String getOriginalUrl() {
         return webview.getOriginalUrl();
     }
+
+    public Bitmap getPageIcon(){
+        return pageIcon;
+    }
+
+    protected int dp2px(int dp){
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp,getResources().getDisplayMetrics());
+    }
+
 }

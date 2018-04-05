@@ -11,34 +11,47 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
+import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.DividerItemDecoration;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.OrientationHelper;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -46,6 +59,8 @@ import android.widget.Toast;
 import com.github.fafaldo.fabtoolbar.widget.FABToolbarLayout;
 import com.google.zxing.client.android.CaptureActivity;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -55,26 +70,32 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
     //private ImageButton QRButton;
     private ImageView button_back, button_forward, button_home, button_refresh, button_hide, QRButton, button_more;
-    private EditText edit_url;
+    private static EditText edit_url;
     private InputMethodManager imm;
     public static String pageLink = "", pageTitle = "";
     private FABToolbarLayout fabToolbarLayout;
-    private FloatingActionButton fab;
+    private FloatingActionButton fab, addWindowFab;
     private long exitTime = 0;
     private NotificationRec notificationRec;
     private SharedPreferences sharedPreferences;
     private DrawerLayout drawerLayout;
     private WebViewFragment webViewFragment;
     private FrameLayout frameLayout;
-    private FragmentManager fragmentManager;
-    private android.support.v4.app.FragmentTransaction fragmentTransaction;
+    private static FragmentManager fragmentManager;
+    private static android.support.v4.app.FragmentTransaction fragmentTransaction;
     private NotificationManager notificationManager;
     private BackHandledFragment backHandledFragment;
+    private Toolbar multi_window_toolbar;
+    private RecyclerView multi_window_recyclerView;
+    private static multi_window_Adapter multiWindowAdapter;
 
     public static int WELCOME_SHOULD_END = 0;
     private static int ICON_COLOR = 0xff000000;
     private static int BROADCAST_TAG = 0;
     private boolean hadIntercept;
+    private static List<WindowInfo> windowInfoList;
+    private static List<WebViewFragment> webViewFragmentList;
+    private static int whereAreWe;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -120,6 +141,14 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         fragmentManager = getSupportFragmentManager();
         fragmentTransaction = fragmentManager.beginTransaction();
         notificationManager = (NotificationManager) this.getSystemService(NOTIFICATION_SERVICE);
+        multi_window_toolbar = (Toolbar) findViewById(R.id.multi_window_toolbar);
+        multi_window_recyclerView = (RecyclerView) findViewById(R.id.multi_window_recyclerview);
+        addWindowFab = (FloatingActionButton) findViewById(R.id.add_window_button);
+
+        windowInfoList = new ArrayList<>();
+        webViewFragmentList = new ArrayList<>();
+
+        whereAreWe = 0;
 
         /*edit_url*/
         edit_url.clearFocus();
@@ -133,13 +162,13 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                         && KeyEvent.ACTION_DOWN == keyEvent.getAction()) {
                     if (isHalfCompleteUrl(edit_url.getText().toString())) {
                         if (edit_url.getText().toString().startsWith("http") || edit_url.getText().toString().startsWith("ftp://")) {
-                            webViewFragment.makeWebViewLoadUrl(pageLink = edit_url.getText().toString());
+                            webViewFragmentList.get(whereAreWe).makeWebViewLoadUrl(pageLink = edit_url.getText().toString());
                         } else {
-                            webViewFragment.makeWebViewLoadUrl("http://" + (pageLink = edit_url.getText().toString()));
+                            webViewFragmentList.get(whereAreWe).makeWebViewLoadUrl("http://" + (pageLink = edit_url.getText().toString()));
                             pageLink = "http://" + pageLink;
                         }
                     } else {
-                        webViewFragment.makeWebViewLoadUrl(pageLink = toSearchResult(edit_url.getText().toString()));
+                        webViewFragmentList.get(whereAreWe).makeWebViewLoadUrl(pageLink = toSearchResult(edit_url.getText().toString()));
                     }
                     if (imm.isActive() && getCurrentFocus() != null) {
                         if (getCurrentFocus().getWindowToken() != null) {
@@ -236,6 +265,55 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             }
         });
 
+        multi_window_toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                drawerLayout.closeDrawers();
+            }
+        });
+
+        drawerLayout.setDrawerListener(new DrawerLayout.DrawerListener() {
+            @Override
+            public void onDrawerSlide(@NonNull View drawerView, float slideOffset) {
+
+            }
+
+            @Override
+            public void onDrawerOpened(@NonNull View drawerView) {
+                drawerView.setClickable(true);
+            }
+
+            @Override
+            public void onDrawerClosed(@NonNull View drawerView) {
+                drawerView.setClickable(false);
+            }
+
+            @Override
+            public void onDrawerStateChanged(int newState) {
+
+            }
+        });
+
+        multiWindowAdapter = new multi_window_Adapter(windowInfoList);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
+        multi_window_recyclerView.setLayoutManager(linearLayoutManager);
+        linearLayoutManager.setOrientation(OrientationHelper.VERTICAL);
+        multi_window_recyclerView.setAdapter(multiWindowAdapter);
+        multi_window_recyclerView.setItemAnimator(new DefaultItemAnimator());
+        multi_window_recyclerView.addItemDecoration(new DividerItemDecoration(this,DividerItemDecoration.VERTICAL));
+        multiWindowAdapter.setOnItemClickListener(new multi_window_Adapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(View view, int position) {
+                Log.d("item clicked", "onItemClick: " + position);
+                whereAreWe = position;
+                hideAllWebViewFragment();
+                showOneWebViewFragment(position);
+                pageLink = webViewFragmentList.get(position).getPageUrl();
+                pageTitle = webViewFragmentList.get(position).getPageTitle();
+                edit_url.setHint(pageTitle);
+            }
+        });
+
         button_more.setOnClickListener(this);
         button_back.setOnClickListener(this);
         button_forward.setOnClickListener(this);
@@ -243,6 +321,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         button_refresh.setOnClickListener(this);
         button_hide.setOnClickListener(this);
         fab.setOnClickListener(this);
+        addWindowFab.setOnClickListener(this);
 
         fab.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
@@ -256,10 +335,12 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             }
         });
 
-        fragmentTransaction.add(R.id.frame_layout, webViewFragment);
-        fragmentTransaction.show(webViewFragment);
+        webViewFragmentList.add(new WebViewFragment());
+        fragmentTransaction.add(R.id.frame_layout, webViewFragmentList.get(0));
+        fragmentTransaction.show(webViewFragmentList.get(0));
         fragmentTransaction.commit();
 
+        addWindowInfo("title", "url", webViewFragmentList.get(whereAreWe).getPageIcon());
     }
 
     @Override
@@ -272,23 +353,23 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             }
             case (R.id.button_back):   //返回按钮
             {
-                webViewFragment.webViewGoBack();
+                webViewFragmentList.get(whereAreWe).webViewGoBack();
                 edit_url.clearFocus();
-                pageLink = webViewFragment.getOriginalUrl();
-                edit_url.setHint(pageTitle = webViewFragment.getPageTitle());
+                pageLink = webViewFragmentList.get(whereAreWe).getOriginalUrl();
+                edit_url.setHint(pageTitle = webViewFragmentList.get(whereAreWe).getPageTitle());
                 break;
             }
             case (R.id.button_forward): //前进按钮
             {
-                webViewFragment.webViewGoForward();
+                webViewFragmentList.get(whereAreWe).webViewGoForward();
                 edit_url.clearFocus();
-                pageLink = webViewFragment.getOriginalUrl();
-                edit_url.setHint(pageTitle = webViewFragment.getPageTitle());
+                pageLink = webViewFragmentList.get(whereAreWe).getOriginalUrl();
+                edit_url.setHint(pageTitle = webViewFragmentList.get(whereAreWe).getPageTitle());
                 break;
             }
             case (R.id.button_home):  //返回主页按钮
             {
-                webViewFragment.makeWebViewLoadUrl(sharedPreferences.getString("change_first_page", "http://www.baidu.com"));
+                webViewFragmentList.get(whereAreWe).makeWebViewLoadUrl(sharedPreferences.getString("change_first_page", "http://www.baidu.com"));
                 pageLink = "";
                 break;
             }
@@ -303,39 +384,24 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             }
             case (R.id.button_refresh): //刷新按钮
             {
-                webViewFragment.makeWebViewLoadUrl(webViewFragment.getPageUrl());
+                webViewFragmentList.get(whereAreWe).makeWebViewLoadUrl(webViewFragmentList.get(whereAreWe).getPageUrl());
+                break;
+            }
+            case (R.id.add_window_button): {
+                FragmentManager fm = getSupportFragmentManager();
+                FragmentTransaction ft = fm.beginTransaction();
+                webViewFragmentList.add(new WebViewFragment());
+                ft.add(R.id.frame_layout, webViewFragmentList.get(webViewFragmentList.size() - 1));
+                ft.commit();
+                windowInfoList.add(new WindowInfo("新标签页", "", null));
+                multiWindowAdapter.notifyDataSetChanged();
+                whereAreWe = windowInfoList.size() - 1;
                 break;
             }
             default:
                 break;
         }
     }
-
-//    @Override
-//    public boolean onKeyDown(int keyCode, KeyEvent event) {
-//        if ((keyCode == KEYCODE_BACK) && webView.canGoBack()) {
-//            webView.goBack();
-//            edit_url.clearFocus();
-//            if (edit_url.getHint() == "首页") {
-//                pageLink = "";
-//            } else {
-//                pageLink = webView.getOriginalUrl();
-//                edit_url.setHint(pageTitle = webViewFragment.getPageTitle());
-//            }
-//            return true;
-//        } else if ((keyCode == KEYCODE_BACK) && !webView.canGoBack()) {
-//            if ((System.currentTimeMillis() - exitTime) > 2000) {
-//                Toast.makeText(this, "再按一次退出程序", Toast.LENGTH_SHORT).show();
-//                exitTime = System.currentTimeMillis();
-//            } else {
-//                this.finish();
-//                ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).cancelAll();
-//                System.exit(0);
-//            }
-//            return true;
-//        }
-//        return super.onKeyDown(keyCode, event);
-//    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -366,10 +432,10 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                     edit_url.setText(t);
                     pageLink = t;
                 }
-                webViewFragment.makeWebViewLoadUrl(pageLink);
+                webViewFragmentList.get(whereAreWe).makeWebViewLoadUrl(pageLink);
             } else {
-                webViewFragment.makeWebViewLoadUrl(toSearchResult(t));
-                pageLink = webViewFragment.getPageUrl();
+                webViewFragmentList.get(whereAreWe).makeWebViewLoadUrl(toSearchResult(t));
+                pageLink = webViewFragmentList.get(whereAreWe).getPageUrl();
             }
         }
     }
@@ -410,14 +476,15 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
     @Override
     public void onBackPressed() {
-        if(backHandledFragment == null || !backHandledFragment.onBackPressed()){
-            if(getSupportFragmentManager().getBackStackEntryCount() == 0){
+        if (backHandledFragment == null || !backHandledFragment.onBackPressed()) {
+            if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
                 super.onBackPressed();
-            }else{
+            } else {
                 getSupportFragmentManager().popBackStack();
             }
         }
     }
+
 
     /**
      * 正则表达式判断输入url
@@ -588,8 +655,65 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         QRButton.setImageDrawable(d);
     }
 
-    public interface BackHandledInterface{
+    public interface BackHandledInterface {
         void setSelectedFragment(BackHandledFragment selectedFragment);
+    }
+
+    public void addWindowInfo(String title, String url, Bitmap icon) {
+        whereAreWe = windowInfoList.size();
+        windowInfoList.add(new WindowInfo(title, url, icon));
+        multiWindowAdapter.notifyDataSetChanged();
+    }
+
+    public static void removeWindow(int position){
+        FragmentTransaction ft = fragmentManager.beginTransaction();
+        if(whereAreWe == position){
+            if(whereAreWe != 0){
+                whereAreWe--;
+                if(webViewFragmentList.size() != 0) {
+                    ft.show(webViewFragmentList.get(whereAreWe));
+                    pageTitle = webViewFragmentList.get(whereAreWe).getPageTitle();
+                    pageLink = webViewFragmentList.get(whereAreWe).getPageUrl();
+                    edit_url.setHint(pageTitle);
+                }
+            }
+        }else if(whereAreWe > position){
+            whereAreWe--;
+        }else if(whereAreWe < position){
+        }
+        windowInfoList.remove(position);
+        ft.remove(webViewFragmentList.get(position));
+        webViewFragmentList.remove(position);
+        multiWindowAdapter.notifyDataSetChanged();
+        ft.commit();
+    }
+
+    public void setWindowInfo(String title, String url, Bitmap icon, int position){
+        windowInfoList.get(position).setWindowTitle(title);
+        windowInfoList.get(position).setWindowUrl(url);
+        windowInfoList.get(position).setWindowIcon(icon);
+        multiWindowAdapter.notifyDataSetChanged();
+    }
+
+    public static int getPositionNow(){
+        return whereAreWe;
+    }
+
+    public static void setPositionNow(int position){
+        whereAreWe = position;
+    }
+
+    public void hideAllWebViewFragment(){
+        FragmentTransaction ft = fragmentManager.beginTransaction();
+        for(int i = 0; i < webViewFragmentList.size(); i++) {
+            ft.hide(webViewFragmentList.get(i));
+        }
+        ft.commit();
+    }
+
+    public void showOneWebViewFragment(int position){
+        FragmentTransaction ft = fragmentManager.beginTransaction();
+        ft.show(webViewFragmentList.get(position)).commit();
     }
 }
 
