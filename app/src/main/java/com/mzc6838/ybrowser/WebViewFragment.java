@@ -18,6 +18,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.widget.ContentLoadingProgressBar;
 import android.text.SpannableString;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,6 +30,8 @@ import android.widget.Toast;
 
 import com.tencent.smtt.sdk.WebSettings;
 import com.tencent.smtt.sdk.WebView;
+
+import static android.webkit.WebSettings.MIXED_CONTENT_ALWAYS_ALLOW;
 
 /**
  * Created by mzc6838 on 2018/4/2.
@@ -46,18 +49,21 @@ public class WebViewFragment extends BackHandledFragment {
     private View view;
     private long exitTime = 0;
     private Bitmap pageIcon;
+    private Bundle webViewState;
+
+    public static String PRELOADURL = "";
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
         view = inflater.inflate(R.layout.main_webview_fragment, container, false);
 
-        init();
+        init(savedInstanceState);
 
         return view;
     }
 
-    public void init() {
+    public void init(@Nullable Bundle savedInstanceState) {
 
         mainActivity = (MainActivity) getActivity();
 
@@ -77,6 +83,7 @@ public class WebViewFragment extends BackHandledFragment {
         webSettings.setSupportZoom(true);
         webSettings.setBuiltInZoomControls(true);
         webSettings.setDisplayZoomControls(false);
+        webSettings.setMixedContentMode(MIXED_CONTENT_ALWAYS_ALLOW);
 
         switch (sharedPreferences.getString("change_UA", "")) {
             case ("Android"): {
@@ -137,7 +144,7 @@ public class WebViewFragment extends BackHandledFragment {
             public void onPageFinished(WebView web, String s) {
 
                 web.loadUrl("javascript:window.java_obj.setColor("
-                        + "document.querySelector('meta[name=\"theme-color\"]').getAttribute('content')"
+                        + "new Function(\"var t = document.querySelector('meta[name=\\\"theme-color\\\"]');if(t == null){ return \\\"null\\\";}else{return t.getAttribute('content');}\")()"
                         + ");");
 
                 mainActivity.pageLink = web.getUrl();
@@ -192,7 +199,12 @@ public class WebViewFragment extends BackHandledFragment {
             }
         });
         webview.canGoBack();
-        webview.loadUrl(sharedPreferences.getString("change_first_page", "http://www.baidu.com"));
+        if(PRELOADURL.isEmpty())
+            webview.loadUrl(sharedPreferences.getString("change_first_page", "http://www.baidu.com"));
+        else {
+            webview.loadUrl(PRELOADURL);
+            PRELOADURL = "";
+        }
         webview.setOnScrollChangeListener(new com.tencent.smtt.sdk.WebView.OnScrollChangeListener() {
             @Override
             public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
@@ -276,7 +288,12 @@ public class WebViewFragment extends BackHandledFragment {
 
         @JavascriptInterface
         public void setColor(final String str) {
-            mainActivity.setColor(str);
+            Log.d("setColor: ", str);
+            if(str.equals("null")){
+                mainActivity.setColor("#f2f2f2");
+            }else {
+                mainActivity.setColor(str);
+            }
         }
     }
 

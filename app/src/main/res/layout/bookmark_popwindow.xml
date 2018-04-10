@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/popwindow_shape">
+
+    <TextView
+        android:id="@+id/bookmark_popwindow_title"
+        android:layout_width="match_parent"
+        android:layout_height="36dp"
+        android:text=""
+        android:gravity="center"
+        android:textSize="24sp"
+        android:textColor="#444"/>
+
+    <android.support.design.widget.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp">
+
+        <android.support.design.widget.TextInputEditText
+            android:id="@+id/bookmark_popwindow_edit_title"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:hint="标题"
+            android:singleLine="true"/>
+
+    </android.support.design.widget.TextInputLayout>
+
+    <android.support.design.widget.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp">
+
+        <android.support.design.widget.TextInputEditText
+            android:id="@+id/bookmark_popwindow_edit_url"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:hint="链接"
+            android:singleLine="true"/>
+
+    </android.support.design.widget.TextInputLayout>
+
+    <Button
+        android:id="@+id/check_bookmark"
+        android:layout_width="98dp"
+        android:layout_height="wrap_content"
+        android:text="确定"
+        android:layout_gravity="end"
+        android:layout_marginEnd="16dp"
+        android:background="#00000000"
+        android:layout_marginTop="8dp"/>
+
+
+</LinearLayout>

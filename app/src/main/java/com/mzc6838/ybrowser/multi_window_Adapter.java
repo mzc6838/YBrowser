@@ -26,7 +26,6 @@ public class multi_window_Adapter extends RecyclerView.Adapter<multi_window_Adap
 
         public ViewHolder(View view){
             super(view);
-            //TODO: 网站图标和标题的传入
             siteIcon = (ImageView) view.findViewById(R.id.windowIcon);
             siteTitle = (TextView) view.findViewById(R.id.windowTitle);
             siteUrl = (TextView) view.findViewById(R.id.windowUrl);
@@ -52,7 +51,7 @@ public class multi_window_Adapter extends RecyclerView.Adapter<multi_window_Adap
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.multi_window_list, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.multi_window_item, parent, false);
         final ViewHolder _viewHolder = new ViewHolder(view);
         return _viewHolder;
     }
@@ -61,6 +60,7 @@ public class multi_window_Adapter extends RecyclerView.Adapter<multi_window_Adap
     public void onBindViewHolder(final ViewHolder holder, int position) {
         WindowInfo windowInfo = windowList.get(position);
         holder.siteIcon.setImageBitmap(windowInfo.getWindowIcon());
+
         holder.siteTitle.setText(windowInfo.getWindowTitle());
         holder.siteUrl.setText(windowInfo.getWindowUrl());
 

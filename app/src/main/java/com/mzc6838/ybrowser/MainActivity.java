@@ -23,6 +23,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -41,23 +42,30 @@ import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowManager;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.github.fafaldo.fabtoolbar.widget.FABToolbarLayout;
 import com.google.zxing.client.android.CaptureActivity;
+
+import org.litepal.crud.DataSupport;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -114,7 +122,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
         GetPermission();
 
-        Init();
+        Init(savedInstanceState);
 
     }
 
@@ -122,7 +130,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
     }
 
-    public void Init() {
+    public void Init(Bundle savedInstanceState) {
         QRButton = (ImageView) findViewById(R.id.QRButton);
         button_back = (ImageView) findViewById(R.id.button_back);
         button_forward = (ImageView) findViewById(R.id.button_forward);
@@ -388,14 +396,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 break;
             }
             case (R.id.add_window_button): {
-                FragmentManager fm = getSupportFragmentManager();
-                FragmentTransaction ft = fm.beginTransaction();
-                webViewFragmentList.add(new WebViewFragment());
-                ft.add(R.id.frame_layout, webViewFragmentList.get(webViewFragmentList.size() - 1));
-                ft.commit();
-                windowInfoList.add(new WindowInfo("新标签页", "", null));
-                multiWindowAdapter.notifyDataSetChanged();
-                whereAreWe = windowInfoList.size() - 1;
+                addNewWindow();
                 break;
             }
             default:
@@ -421,21 +422,47 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK && requestCode == 111) {
-            String t;
-            if (isHalfCompleteUrl((t = data.getStringExtra("codedContent")))) {
-                if (t.startsWith("http://") || t.startsWith("https://")) {
-                    edit_url.setText(t);
-                    pageLink = t;
+
+        if(requestCode == 111){
+            if(resultCode == RESULT_OK){
+                String t;
+                if (isHalfCompleteUrl((t = data.getStringExtra("codedContent")))) {
+                    if (t.startsWith("http://") || t.startsWith("https://")) {
+                        edit_url.setText(t);
+                        pageLink = t;
+                    } else {
+                        t = "http://" + t;
+                        edit_url.setText(t);
+                        pageLink = t;
+                    }
+                    webViewFragmentList.get(whereAreWe).makeWebViewLoadUrl(pageLink);
                 } else {
-                    t = "http://" + t;
-                    edit_url.setText(t);
-                    pageLink = t;
+                    webViewFragmentList.get(whereAreWe).makeWebViewLoadUrl(toSearchResult(t));
+                    pageLink = webViewFragmentList.get(whereAreWe).getPageUrl();
                 }
-                webViewFragmentList.get(whereAreWe).makeWebViewLoadUrl(pageLink);
-            } else {
-                webViewFragmentList.get(whereAreWe).makeWebViewLoadUrl(toSearchResult(t));
-                pageLink = webViewFragmentList.get(whereAreWe).getPageUrl();
+            }
+        }else if(requestCode == 222){
+            switch (resultCode){
+                case (777):{
+                    //TODO:当bookmark关闭时在当前fragment加载url
+                    if(webViewFragmentList.size() != 0){
+                        webViewFragmentList.get(whereAreWe).makeWebViewLoadUrl(data.getStringExtra("url"));
+                        windowInfoList.get(whereAreWe).setWindowUrl(data.getStringExtra("url"));
+                        windowInfoList.get(whereAreWe).setWindowTitle(data.getStringExtra("title"));
+                    }
+                    else{
+                        Toast.makeText(this, "请先去新打开一个窗口", Toast.LENGTH_SHORT).show();
+                    }
+                    break;
+                }
+                case (778):{
+                    //TODO:当bookmark关闭时在新窗口加载url
+                    addNewWindow();
+                    webViewFragmentList.get(whereAreWe).PRELOADURL = data.getStringExtra("url");
+                    Log.d("whereAreWe", whereAreWe + "");
+                    break;
+                }
+                default:break;
             }
         }
     }
@@ -485,26 +512,28 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         }
     }
 
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putInt("BROADCAST", BROADCAST_TAG);
+        outState.putInt("WHEREAREWE", whereAreWe);
 
-    /**
-     * 正则表达式判断输入url
-     *
-     * @param text 被检测的输入数据;
-     * @return true  是一个链接
-     * false 不是一个链接
-     */
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        savedInstanceState.getInt("BROADCAST");
+        savedInstanceState.getInt("WHEREAREWE");
+
+        super.onRestoreInstanceState(savedInstanceState);
+    }
+
     public static boolean isHalfCompleteUrl(String text) {
         Pattern pattern = Pattern.compile("(([a-zA-Z0-9\\._-]+\\.[a-zA-Z]{2,6})|([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}))(:[0-9]{1,4})*(/[a-zA-Z0-9\\&%_\\./-~-]*)?", Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(text);
         return matcher.find();
     }
 
-    /**
-     * 生成百度搜索链接
-     *
-     * @param text 输入数据
-     * @return String
-     */
     public String toSearchResult(String text) {
         if (sharedPreferences.getString("change_search_engine", "baidu").equals("baidu")) {
             String result = "https://www.baidu.com/s?wd=";
@@ -517,11 +546,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         }
     }
 
-    /**
-     * 右上角菜单弹出
-     *
-     * @param v View
-     */
     private void popMenu(View v) {
         final PopupMenu popupMenu = new PopupMenu(this, v);
         popupMenu.getMenuInflater().inflate(R.menu.main_menu, popupMenu.getMenu());
@@ -532,6 +556,16 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                     case (R.id.setting): {
                         Intent intent = new Intent(MainActivity.this, SettingActivity.class);
                         startActivity(intent);
+                        return true;
+                    }
+                    case (R.id.add_bookmark):{
+                        //TODO:添加书签
+                        showPopupWindow();
+                        return true;
+                    }
+                    case (R.id.bookmark):{
+                        Intent intent = new Intent(MainActivity.this, BookmarkActivity.class);
+                        startActivityForResult(intent, 222);
                         return true;
                     }
                     case (R.id.help): {
@@ -714,6 +748,72 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     public void showOneWebViewFragment(int position){
         FragmentTransaction ft = fragmentManager.beginTransaction();
         ft.show(webViewFragmentList.get(position)).commit();
+    }
+
+    public void setItemHighLight(int position){
+
+    }
+
+    public void showPopupWindow(){
+        View contentView = LayoutInflater.from(MainActivity.this).inflate(R.layout.bookmark_popwindow, null);
+        final PopupWindow popupWindow = new PopupWindow(contentView, LinearLayout.LayoutParams.WRAP_CONTENT + 1200, LinearLayout.LayoutParams.WRAP_CONTENT, true);
+        popupWindow.setContentView(contentView);
+
+        WindowManager.LayoutParams lp = getWindow().getAttributes();
+        lp.alpha = 0.4f;
+        getWindow().setAttributes(lp);
+
+        TextView windowTitle = (TextView) contentView.findViewById(R.id.bookmark_popwindow_title);
+        final TextInputEditText title_edit = (TextInputEditText) contentView.findViewById(R.id.bookmark_popwindow_edit_title);
+        final TextInputEditText url_edit = (TextInputEditText) contentView.findViewById(R.id.bookmark_popwindow_edit_url);
+        Button checkInput = (Button) contentView.findViewById(R.id.check_bookmark);
+
+        windowTitle.setText("添加书签");
+        title_edit.setText(pageTitle);
+        url_edit.setText(pageLink);
+
+        checkInput.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(DataSupport
+                        .where("title = ? and url = ?", title_edit.getText().toString(), url_edit.getText().toString())
+                        .find(Bookmark.class)
+                        .isEmpty()){
+                    Bookmark bookmark = new Bookmark();
+                    bookmark.setTitle(title_edit.getText().toString());
+                    bookmark.setUrl(url_edit.getText().toString());
+                    bookmark.save();
+                    Toast.makeText(MainActivity.this, "已成功添加书签", Toast.LENGTH_SHORT).show();
+                    popupWindow.dismiss();
+                }else{
+                    Toast.makeText(MainActivity.this, "已成功添加书签", Toast.LENGTH_SHORT).show();
+                    popupWindow.dismiss();
+                }
+            }
+        });
+
+        popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
+            @Override
+            public void onDismiss() {
+                WindowManager.LayoutParams lp = getWindow().getAttributes();
+                lp.alpha = 1f;
+                getWindow().setAttributes(lp);
+            }
+        });
+
+        View rootView = LayoutInflater.from(MainActivity.this).inflate(R.layout.activity_main, null);
+        popupWindow.showAtLocation(rootView, Gravity.CENTER,0,0);
+    }
+
+    public void addNewWindow(){
+        FragmentManager fm = getSupportFragmentManager();
+        FragmentTransaction ft = fm.beginTransaction();
+        webViewFragmentList.add(new WebViewFragment());
+        ft.add(R.id.frame_layout, webViewFragmentList.get(webViewFragmentList.size() - 1));
+        ft.commit();
+        windowInfoList.add(new WindowInfo("新标签页", "", null));
+        multiWindowAdapter.notifyDataSetChanged();
+        whereAreWe = windowInfoList.size() - 1;
     }
 }
 
