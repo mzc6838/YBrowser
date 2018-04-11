@@ -41,6 +41,9 @@
         <activity android:name=".BookmarkActivity">
         </activity>
 
+        <activity android:name=".HistoryActivity">
+        </activity>
+
     </application>
 
 </manifest>

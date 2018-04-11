@@ -11,6 +11,8 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.OrientationHelper;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
+import android.support.v7.widget.PopupMenu;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
@@ -19,7 +21,6 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.PopupMenu;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -42,6 +43,7 @@ public class BookmarkActivity extends Activity {
     private static List<Bookmark> bookmarkList;
     private static bookmark_Adapter bookmark_adapter;
     private PopupWindow popupWindow;
+    private Toolbar toolbar;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -56,12 +58,12 @@ public class BookmarkActivity extends Activity {
 
         bookmarkList_recyclerview = (RecyclerView) findViewById(R.id.bookmark_recyclerview);
         bookhint = (TextView) findViewById(R.id.bookmark_hint);
+        toolbar = (Toolbar) findViewById(R.id.bookmark_toolbar);
 
         bookmarkList = new ArrayList<>();
 
         bookmarkList = DataSupport.findAll(Bookmark.class);
         if(bookmarkList.isEmpty()){
-            //TODO:当数据库中数据为空时处理逻辑
             bookhint.setVisibility(View.VISIBLE);
             bookmarkList_recyclerview.setVisibility(View.GONE);
         }else{
@@ -103,7 +105,6 @@ public class BookmarkActivity extends Activity {
                                     return true;
                                 }
                                 case (R.id.delete_bookmark):{
-                                    //TODO:删除书签
                                     DataSupport.deleteAll(Bookmark.class, "title = ? and url = ?",
                                             bookmarkList.get(position).getTitle(),
                                             bookmarkList.get(position).getUrl());
@@ -113,7 +114,6 @@ public class BookmarkActivity extends Activity {
                                     return true;
                                 }
                                 case (R.id.open_in_new_window):{
-                                    //TODO:在新窗口打开
                                     Intent intent = new Intent();
                                     intent.putExtra("title", bookmarkList.get(position).getTitle());
                                     intent.putExtra("url", bookmarkList.get(position).getUrl());
@@ -131,6 +131,13 @@ public class BookmarkActivity extends Activity {
                 }
             });
         }
+
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
     }
 
     public void showPopupWindow(final String title, final String url, final int position){

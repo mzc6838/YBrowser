@@ -444,7 +444,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         }else if(requestCode == 222){
             switch (resultCode){
                 case (777):{
-                    //TODO:当bookmark关闭时在当前fragment加载url
                     if(webViewFragmentList.size() != 0){
                         webViewFragmentList.get(whereAreWe).makeWebViewLoadUrl(data.getStringExtra("url"));
                         windowInfoList.get(whereAreWe).setWindowUrl(data.getStringExtra("url"));
@@ -456,7 +455,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                     break;
                 }
                 case (778):{
-                    //TODO:当bookmark关闭时在新窗口加载url
                     addNewWindow();
                     webViewFragmentList.get(whereAreWe).PRELOADURL = data.getStringExtra("url");
                     Log.d("whereAreWe", whereAreWe + "");
@@ -559,12 +557,16 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                         return true;
                     }
                     case (R.id.add_bookmark):{
-                        //TODO:添加书签
                         showPopupWindow();
                         return true;
                     }
                     case (R.id.bookmark):{
                         Intent intent = new Intent(MainActivity.this, BookmarkActivity.class);
+                        startActivityForResult(intent, 222);
+                        return true;
+                    }
+                    case (R.id.history):{
+                        Intent intent = new Intent(MainActivity.this, HistoryActivity.class);
                         startActivityForResult(intent, 222);
                         return true;
                     }

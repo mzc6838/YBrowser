@@ -31,6 +31,8 @@ import android.widget.Toast;
 import com.tencent.smtt.sdk.WebSettings;
 import com.tencent.smtt.sdk.WebView;
 
+import org.litepal.crud.DataSupport;
+
 import static android.webkit.WebSettings.MIXED_CONTENT_ALWAYS_ALLOW;
 
 /**
@@ -149,12 +151,13 @@ public class WebViewFragment extends BackHandledFragment {
 
                 mainActivity.pageLink = web.getUrl();
                 mainActivity.pageTitle = web.getTitle();
-//                ((EditText) view.findViewById(R.id.edit_box)).setHint(mainActivity.pageTitle);
                 ((EditText)mainActivity.findViewById(R.id.edit_box)).setHint(mainActivity.pageTitle);
-
-                //mainActivity.addWindowInfo(web.getTitle(), web.getUrl(), pageIcon);
-
                 mainActivity.setWindowInfo(mainActivity.pageTitle, mainActivity.pageLink, pageIcon, mainActivity.getPositionNow());
+
+                History history = new History();
+                history.setTitle(web.getTitle());
+                history.setUrl(web.getUrl());
+                history.save();
 
                 super.onPageFinished(webview, s);
             }

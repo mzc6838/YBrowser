@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <litepal>
     <dbname value="YBroserDataBase"/>
-    <version value="1"/>
+    <version value="2"/>
     <list>
         <mapping class="com.mzc6838.ybrowser.Bookmark"/>
+        <mapping class="com.mzc6838.ybrowser.History"/>
     </list>
 </litepal>
