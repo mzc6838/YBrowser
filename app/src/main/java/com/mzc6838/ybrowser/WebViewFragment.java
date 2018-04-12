@@ -157,6 +157,7 @@ public class WebViewFragment extends BackHandledFragment {
                 History history = new History();
                 history.setTitle(web.getTitle());
                 history.setUrl(web.getUrl());
+                history.setAddTime(Long.toString(System.currentTimeMillis()));
                 history.save();
 
                 super.onPageFinished(webview, s);

@@ -61,7 +61,7 @@ public class HistoryActivity extends AppCompatActivity {
         historyList = new ArrayList<>();
 
         historyList = DataSupport
-                .select("title", "url")
+                .select("title", "url", "addTime")
                 .order("id desc")
                 .find(History.class);
         if(historyList.isEmpty()){
@@ -123,9 +123,10 @@ public class HistoryActivity extends AppCompatActivity {
                     public boolean onMenuItemClick(MenuItem item) {
                         switch (item.getItemId()){
                             case (R.id.delete_history):{
-                                DataSupport.deleteAll(History.class, "title = ? and url = ?",
+                                DataSupport.deleteAll(History.class, "title = ? and url = ? and addTime = ?",
                                         historyList.get((position)).getTitle(),
-                                        historyList.get(position).getUrl());
+                                        historyList.get(position).getUrl(),
+                                        historyList.get(position).getAddTime());
                                 historyList.remove(position);
                                 history_adapter.notifyDataSetChanged();
                                 Toast.makeText(HistoryActivity.this, "该历史已被删除", Toast.LENGTH_SHORT).show();

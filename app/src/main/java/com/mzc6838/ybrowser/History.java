@@ -10,6 +10,15 @@ public class History extends DataSupport{
     private int id;
     private String title;
     private String url;
+    private String addTime;
+
+    public String getAddTime() {
+        return addTime;
+    }
+
+    public void setAddTime(String addTime) {
+        this.addTime = addTime;
+    }
 
     public int getId() {
         return id;
