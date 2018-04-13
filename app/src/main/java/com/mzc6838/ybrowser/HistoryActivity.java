@@ -1,5 +1,6 @@
 package com.mzc6838.ybrowser;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -10,6 +11,7 @@ import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.view.menu.MenuPopupHelper;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
@@ -29,6 +31,7 @@ import android.widget.Toast;
 import org.litepal.LitePal;
 import org.litepal.crud.DataSupport;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,6 +55,7 @@ public class HistoryActivity extends AppCompatActivity {
         init(savedInstanceState);
     }
 
+    @SuppressLint("RestrictedApi")
     public void init(@Nullable Bundle s){
         LitePal.getDatabase();
 
@@ -144,6 +148,14 @@ public class HistoryActivity extends AppCompatActivity {
                         }
                     }
                 });
+                try{
+                    Field field = popupMenu.getClass().getDeclaredField("mPopup");
+                    field.setAccessible(true);
+                    MenuPopupHelper menuPopupHelper = (MenuPopupHelper) field.get(popupMenu);
+                    menuPopupHelper.setForceShowIcon(true);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
                 popupMenu.show();
                 return true;
             }

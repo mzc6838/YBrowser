@@ -1,6 +1,7 @@
 package com.mzc6838.ybrowser;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -10,33 +11,29 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
-import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.view.menu.MenuPopupHelper;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.OrientationHelper;
+import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
@@ -47,7 +44,6 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.EditorInfo;
@@ -57,7 +53,6 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.PopupMenu;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -67,6 +62,7 @@ import com.google.zxing.client.android.CaptureActivity;
 
 import org.litepal.crud.DataSupport;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -544,6 +540,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         }
     }
 
+    @SuppressLint("RestrictedApi")
     private void popMenu(View v) {
         final PopupMenu popupMenu = new PopupMenu(this, v);
         popupMenu.getMenuInflater().inflate(R.menu.main_menu, popupMenu.getMenu());
@@ -586,6 +583,15 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 button_more.setAnimation(AnimationUtils.loadAnimation(MainActivity.this, R.anim.more_rotate_back));
             }
         });
+
+        try{
+            Field field = popupMenu.getClass().getDeclaredField("mPopup");
+            field.setAccessible(true);
+            MenuPopupHelper menuPopupHelper = (MenuPopupHelper) field.get(popupMenu);
+            menuPopupHelper.setForceShowIcon(true);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
 
         popupMenu.show();
     }
@@ -758,7 +764,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
     public void showPopupWindow(){
         View contentView = LayoutInflater.from(MainActivity.this).inflate(R.layout.bookmark_popwindow, null);
-        final PopupWindow popupWindow = new PopupWindow(contentView, LinearLayout.LayoutParams.WRAP_CONTENT + 1200, LinearLayout.LayoutParams.WRAP_CONTENT, true);
+        final PopupWindow popupWindow = new PopupWindow(contentView, frameLayout.getWidth() - 100, LinearLayout.LayoutParams.WRAP_CONTENT, true);
         popupWindow.setContentView(contentView);
 
         WindowManager.LayoutParams lp = getWindow().getAttributes();

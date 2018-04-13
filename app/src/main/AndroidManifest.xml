@@ -44,6 +44,9 @@
         <activity android:name=".HistoryActivity">
         </activity>
 
+        <activity android:name=".LoginActivity">
+        </activity>
+
     </application>
 
 </manifest>

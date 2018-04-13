@@ -31,12 +31,14 @@
         android:orientation="vertical">
 
         <android.support.v7.widget.CardView
+            android:id="@+id/login_card"
             android:layout_width="match_parent"
             android:layout_height="100dp"
             app:cardCornerRadius="5dp"
             app:cardElevation="8dp"
             android:layout_margin="10dp"
             android:clickable="true"
+            android:focusable="true"
             android:foreground="?android:attr/selectableItemBackgroundBorderless">
 
             <com.makeramen.roundedimageview.RoundedImageView

@@ -1,11 +1,13 @@
 package com.mzc6838.ybrowser;
 
+import android.annotation.SuppressLint;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputEditText;
+import android.support.v7.view.menu.MenuPopupHelper;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
@@ -29,6 +31,7 @@ import org.litepal.LitePal;
 import org.litepal.crud.DataSupport;
 import org.w3c.dom.Text;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,6 +56,7 @@ public class BookmarkActivity extends Activity {
         init(savedInstanceState);
     }
 
+    @SuppressLint("RestrictedApi")
     public void init(@Nullable Bundle savedInstanceState){
         LitePal.getDatabase();
 
@@ -126,6 +130,15 @@ public class BookmarkActivity extends Activity {
                         }
                     });
 
+                    try{
+                        Field field = popupMenu.getClass().getDeclaredField("mPopup");
+                        field.setAccessible(true);
+                        MenuPopupHelper menuPopupHelper = (MenuPopupHelper) field.get(popupMenu);
+                        menuPopupHelper.setForceShowIcon(true);
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+
                     popupMenu.show();
                     return true;
                 }
@@ -142,7 +155,7 @@ public class BookmarkActivity extends Activity {
 
     public void showPopupWindow(final String title, final String url, final int position){
         View contentView = LayoutInflater.from(BookmarkActivity.this).inflate(R.layout.bookmark_popwindow, null);
-        popupWindow = new PopupWindow(contentView, LinearLayout.LayoutParams.WRAP_CONTENT + 1200, LinearLayout.LayoutParams.WRAP_CONTENT, true);
+        popupWindow = new PopupWindow(contentView, bookmarkList_recyclerview.getWidth() - 100, LinearLayout.LayoutParams.WRAP_CONTENT, true);
         popupWindow.setContentView(contentView);
 
         WindowManager.LayoutParams lp = getWindow().getAttributes();

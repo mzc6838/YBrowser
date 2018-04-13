@@ -4,11 +4,13 @@
     <item
         android:title="删除该历史"
         android:id="@+id/delete_history"
-        app:showAsAction="never"/>
+        app:showAsAction="never"
+        android:icon="@drawable/ic_close"/>
 
     <item
         android:title="在新的标签页中打开"
         android:id="@+id/history_open_in_new_window"
-        app:showAsAction="never"/>
+        app:showAsAction="never"
+        android:icon="@drawable/ic_add_bookmark"/>
 
 </menu>

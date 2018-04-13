@@ -6,26 +6,31 @@
     <item
         android:id="@+id/setting"
         android:title="设置"
-        app:showAsAction="never" />
+        app:showAsAction="never"
+        android:icon="@drawable/ic_settings"/>
 
     <item
         android:id="@+id/add_bookmark"
         android:title="添加书签"
-        app:showAsAction="never"/>
+        app:showAsAction="never"
+        android:icon="@drawable/ic_add_bookmark"/>
 
     <item
         android:id="@+id/bookmark"
         android:title="书签"
-        app:showAsAction="never" />
+        app:showAsAction="never"
+        android:icon="@drawable/ic_bookmark"/>
 
     <item
         android:id="@+id/history"
         android:title="历史记录"
-        app:showAsAction="never"/>
+        app:showAsAction="never"
+        android:icon="@drawable/ic_history"/>
 
     <item
         android:id="@+id/help"
         android:title="帮助"
-        app:showAsAction="never" />
+        app:showAsAction="never"
+        android:icon="@drawable/ic_help"/>
 
 </menu>

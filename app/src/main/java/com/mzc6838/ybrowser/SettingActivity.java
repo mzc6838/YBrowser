@@ -11,6 +11,7 @@ import android.preference.PreferenceManager;
 import android.preference.SwitchPreference;
 import android.provider.Settings;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 
@@ -30,6 +31,7 @@ public class SettingActivity extends PreferenceActivity implements Preference.On
     private ListPreference changeUA;
     private SwitchPreference outWindow_allow;
     private ListPreference changeSearchEngine;
+    private CardView login_cardview;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +51,8 @@ public class SettingActivity extends PreferenceActivity implements Preference.On
         changeUA = (ListPreference) findPreference("change_UA");
         outWindow_allow = (SwitchPreference) findPreference("allow_outWindow");
         changeSearchEngine = (ListPreference) findPreference("change_search_engine");
+
+        login_cardview = (CardView) findViewById(R.id.login_card);
 
         javascript_allow.setOnPreferenceChangeListener(this);
         outWindow_allow.setOnPreferenceChangeListener(this);
@@ -74,6 +78,14 @@ public class SettingActivity extends PreferenceActivity implements Preference.On
             @Override
             public void onClick(View v) {
                 finish();
+            }
+        });
+
+        login_cardview.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(SettingActivity.this, LoginActivity.class);
+                startActivityForResult(intent, 333);
             }
         });
     }
@@ -141,5 +153,10 @@ public class SettingActivity extends PreferenceActivity implements Preference.On
             default:
                 return false;
         }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
     }
 }
