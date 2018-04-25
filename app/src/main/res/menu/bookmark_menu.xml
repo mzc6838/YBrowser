@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/upload_bookmark"
+        android:title="同步到云端"
+        android:icon="@drawable/ic_upload"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/download_bookmark"
+        android:title="从云端同步到本地"
+        android:icon="@drawable/ic_download"
+        app:showAsAction="never"/>
+</menu>

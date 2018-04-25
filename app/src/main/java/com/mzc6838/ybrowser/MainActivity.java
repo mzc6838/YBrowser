@@ -16,6 +16,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.Drawable;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
@@ -58,15 +59,25 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.github.fafaldo.fabtoolbar.widget.FABToolbarLayout;
+import com.google.gson.Gson;
 import com.google.zxing.client.android.CaptureActivity;
 
 import org.litepal.crud.DataSupport;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.FormBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 import static android.view.KeyEvent.KEYCODE_BACK;
 
@@ -304,7 +315,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         linearLayoutManager.setOrientation(OrientationHelper.VERTICAL);
         multi_window_recyclerView.setAdapter(multiWindowAdapter);
         multi_window_recyclerView.setItemAnimator(new DefaultItemAnimator());
-        multi_window_recyclerView.addItemDecoration(new DividerItemDecoration(this,DividerItemDecoration.VERTICAL));
+        multi_window_recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
         multiWindowAdapter.setOnItemClickListener(new multi_window_Adapter.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
@@ -317,6 +328,57 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 edit_url.setHint(pageTitle);
             }
         });
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if (isNetworkConnected(MainActivity.this)) {
+                    final SharedPreferences sp = getSharedPreferences("UserInfo", MODE_PRIVATE);
+
+                    OkHttpClient okHttpClient = new OkHttpClient();
+                    FormBody.Builder bodyBuilder = new FormBody.Builder();
+                    bodyBuilder.add("name", sp.getString("name", "none"));
+                    bodyBuilder.add("tooken", sp.getString("tooken", "none"));
+                    RequestBody requestBody = bodyBuilder.build();
+                    Request request = new Request.Builder()
+                            .url("http://toothless.mzc6838.xyz/browser/loginBackground.php")
+                            .post(requestBody)
+                            .build();
+
+                    Call call = okHttpClient.newCall(request);
+                    call.enqueue(new Callback() {
+                        @Override
+                        public void onFailure(Call call, IOException e) {
+
+                        }
+
+                        @Override
+                        public void onResponse(Call call, Response response) throws IOException {
+                            Gson gson = new Gson();
+                            ErrorResponse errorResponse = gson.fromJson(response.body().string(), ErrorResponse.class);
+                            SharedPreferences.Editor editor = getSharedPreferences("UserInfo", MODE_PRIVATE).edit();
+                            switch (errorResponse.getErrCode()) {
+                                case (11): {
+                                    editor.putBoolean("ifLogin", true);
+                                    editor.apply();
+                                    break;
+                                }
+                                case (12): {
+                                    editor.putBoolean("ifLogin", false);
+                                    editor.apply();
+                                    break;
+                                }
+                                default:
+                                    break;
+                            }
+                        }
+                    });
+                }else {
+                    Toast.makeText(MainActivity.this, "请检查你的互联网连接", Toast.LENGTH_SHORT).show();
+                    getSharedPreferences("UserInfo", MODE_PRIVATE).edit().putBoolean("ifLogin", false).apply();
+                }
+            }
+        }).start();
 
         button_more.setOnClickListener(this);
         button_back.setOnClickListener(this);
@@ -344,7 +406,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         fragmentTransaction.show(webViewFragmentList.get(0));
         fragmentTransaction.commit();
 
-        addWindowInfo("title", "url", webViewFragmentList.get(whereAreWe).getPageIcon());
+        addWindowInfo("新标签页", "", webViewFragmentList.get(whereAreWe).getPageIcon());
     }
 
     @Override
@@ -419,8 +481,8 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if(requestCode == 111){
-            if(resultCode == RESULT_OK){
+        if (requestCode == 111) {
+            if (resultCode == RESULT_OK) {
                 String t;
                 if (isHalfCompleteUrl((t = data.getStringExtra("codedContent")))) {
                     if (t.startsWith("http://") || t.startsWith("https://")) {
@@ -437,26 +499,26 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                     pageLink = webViewFragmentList.get(whereAreWe).getPageUrl();
                 }
             }
-        }else if(requestCode == 222){
-            switch (resultCode){
-                case (777):{
-                    if(webViewFragmentList.size() != 0){
+        } else if (requestCode == 222) {
+            switch (resultCode) {
+                case (777): {
+                    if (webViewFragmentList.size() != 0) {
                         webViewFragmentList.get(whereAreWe).makeWebViewLoadUrl(data.getStringExtra("url"));
                         windowInfoList.get(whereAreWe).setWindowUrl(data.getStringExtra("url"));
                         windowInfoList.get(whereAreWe).setWindowTitle(data.getStringExtra("title"));
-                    }
-                    else{
+                    } else {
                         Toast.makeText(this, "请先去新打开一个窗口", Toast.LENGTH_SHORT).show();
                     }
                     break;
                 }
-                case (778):{
+                case (778): {
                     addNewWindow();
                     webViewFragmentList.get(whereAreWe).PRELOADURL = data.getStringExtra("url");
                     Log.d("whereAreWe", whereAreWe + "");
                     break;
                 }
-                default:break;
+                default:
+                    break;
             }
         }
     }
@@ -553,16 +615,16 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                         startActivity(intent);
                         return true;
                     }
-                    case (R.id.add_bookmark):{
+                    case (R.id.add_bookmark): {
                         showPopupWindow();
                         return true;
                     }
-                    case (R.id.bookmark):{
+                    case (R.id.bookmark): {
                         Intent intent = new Intent(MainActivity.this, BookmarkActivity.class);
                         startActivityForResult(intent, 222);
                         return true;
                     }
-                    case (R.id.history):{
+                    case (R.id.history): {
                         Intent intent = new Intent(MainActivity.this, HistoryActivity.class);
                         startActivityForResult(intent, 222);
                         return true;
@@ -584,12 +646,12 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             }
         });
 
-        try{
+        try {
             Field field = popupMenu.getClass().getDeclaredField("mPopup");
             field.setAccessible(true);
             MenuPopupHelper menuPopupHelper = (MenuPopupHelper) field.get(popupMenu);
             menuPopupHelper.setForceShowIcon(true);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -707,21 +769,21 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         multiWindowAdapter.notifyDataSetChanged();
     }
 
-    public static void removeWindow(int position){
+    public static void removeWindow(int position) {
         FragmentTransaction ft = fragmentManager.beginTransaction();
-        if(whereAreWe == position){
-            if(whereAreWe != 0){
+        if (whereAreWe == position) {
+            if (whereAreWe != 0) {
                 whereAreWe--;
-                if(webViewFragmentList.size() != 0) {
+                if (webViewFragmentList.size() != 0) {
                     ft.show(webViewFragmentList.get(whereAreWe));
                     pageTitle = webViewFragmentList.get(whereAreWe).getPageTitle();
                     pageLink = webViewFragmentList.get(whereAreWe).getPageUrl();
                     edit_url.setHint(pageTitle);
                 }
             }
-        }else if(whereAreWe > position){
+        } else if (whereAreWe > position) {
             whereAreWe--;
-        }else if(whereAreWe < position){
+        } else if (whereAreWe < position) {
         }
         windowInfoList.remove(position);
         ft.remove(webViewFragmentList.get(position));
@@ -730,39 +792,39 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         ft.commit();
     }
 
-    public void setWindowInfo(String title, String url, Bitmap icon, int position){
+    public void setWindowInfo(String title, String url, Bitmap icon, int position) {
         windowInfoList.get(position).setWindowTitle(title);
         windowInfoList.get(position).setWindowUrl(url);
         windowInfoList.get(position).setWindowIcon(icon);
         multiWindowAdapter.notifyDataSetChanged();
     }
 
-    public static int getPositionNow(){
+    public static int getPositionNow() {
         return whereAreWe;
     }
 
-    public static void setPositionNow(int position){
+    public static void setPositionNow(int position) {
         whereAreWe = position;
     }
 
-    public void hideAllWebViewFragment(){
+    public void hideAllWebViewFragment() {
         FragmentTransaction ft = fragmentManager.beginTransaction();
-        for(int i = 0; i < webViewFragmentList.size(); i++) {
+        for (int i = 0; i < webViewFragmentList.size(); i++) {
             ft.hide(webViewFragmentList.get(i));
         }
         ft.commit();
     }
 
-    public void showOneWebViewFragment(int position){
+    public void showOneWebViewFragment(int position) {
         FragmentTransaction ft = fragmentManager.beginTransaction();
         ft.show(webViewFragmentList.get(position)).commit();
     }
 
-    public void setItemHighLight(int position){
+    public void setItemHighLight(int position) {
 
     }
 
-    public void showPopupWindow(){
+    public void showPopupWindow() {
         View contentView = LayoutInflater.from(MainActivity.this).inflate(R.layout.bookmark_popwindow, null);
         final PopupWindow popupWindow = new PopupWindow(contentView, frameLayout.getWidth() - 100, LinearLayout.LayoutParams.WRAP_CONTENT, true);
         popupWindow.setContentView(contentView);
@@ -783,17 +845,17 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         checkInput.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(DataSupport
+                if (DataSupport
                         .where("title = ? and url = ?", title_edit.getText().toString(), url_edit.getText().toString())
                         .find(Bookmark.class)
-                        .isEmpty()){
+                        .isEmpty()) {
                     Bookmark bookmark = new Bookmark();
                     bookmark.setTitle(title_edit.getText().toString());
                     bookmark.setUrl(url_edit.getText().toString());
                     bookmark.save();
                     Toast.makeText(MainActivity.this, "已成功添加书签", Toast.LENGTH_SHORT).show();
                     popupWindow.dismiss();
-                }else{
+                } else {
                     Toast.makeText(MainActivity.this, "已成功添加书签", Toast.LENGTH_SHORT).show();
                     popupWindow.dismiss();
                 }
@@ -810,10 +872,10 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         });
 
         View rootView = LayoutInflater.from(MainActivity.this).inflate(R.layout.activity_main, null);
-        popupWindow.showAtLocation(rootView, Gravity.CENTER,0,0);
+        popupWindow.showAtLocation(rootView, Gravity.CENTER, 0, 0);
     }
 
-    public void addNewWindow(){
+    public void addNewWindow() {
         FragmentManager fm = getSupportFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
         webViewFragmentList.add(new WebViewFragment());
@@ -822,6 +884,14 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         windowInfoList.add(new WindowInfo("新标签页", "", null));
         multiWindowAdapter.notifyDataSetChanged();
         whereAreWe = windowInfoList.size() - 1;
+    }
+
+    public boolean isNetworkConnected(Context context) {
+        ConnectivityManager manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (manager.getActiveNetworkInfo() != null) {
+            return manager.getActiveNetworkInfo().isAvailable();
+        }
+        return false;
     }
 }
 

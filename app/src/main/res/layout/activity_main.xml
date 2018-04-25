@@ -17,7 +17,7 @@
         <LinearLayout
             android:id="@+id/main_toolbar"
             android:layout_width="match_parent"
-            android:layout_height="60dp"
+            android:layout_height="52dp"
             android:background="#f2f2f2"
             android:elevation="4dp"
             android:focusable="true"
@@ -67,7 +67,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="60dp"
+            android:layout_marginTop="52dp"
             android:orientation="vertical">
 
             <FrameLayout

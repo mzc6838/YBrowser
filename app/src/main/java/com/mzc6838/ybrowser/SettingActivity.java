@@ -1,7 +1,10 @@
 package com.mzc6838.ybrowser;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.preference.EditTextPreference;
 import android.preference.ListPreference;
@@ -13,9 +16,15 @@ import android.provider.Settings;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
+
+import com.thinkcool.circletextimageview.CircleTextImageView;
 
 import java.util.List;
+import java.util.Random;
+import java.util.Set;
 
 /**
  * Created by mzc6838 on 2018/3/25.
@@ -32,6 +41,8 @@ public class SettingActivity extends PreferenceActivity implements Preference.On
     private SwitchPreference outWindow_allow;
     private ListPreference changeSearchEngine;
     private CardView login_cardview;
+    private CircleTextImageView profile_image;
+    private TextView profile_name;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +62,8 @@ public class SettingActivity extends PreferenceActivity implements Preference.On
         changeUA = (ListPreference) findPreference("change_UA");
         outWindow_allow = (SwitchPreference) findPreference("allow_outWindow");
         changeSearchEngine = (ListPreference) findPreference("change_search_engine");
+        profile_image = (CircleTextImageView) findViewById(R.id.profile_image);
+        profile_name = (TextView) findViewById(R.id.profile_name);
 
         login_cardview = (CardView) findViewById(R.id.login_card);
 
@@ -81,11 +94,52 @@ public class SettingActivity extends PreferenceActivity implements Preference.On
             }
         });
 
+        if (checkIfLogin()) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Random random = new Random();
+                    SharedPreferences sp = getSharedPreferences("UserInfo", MODE_PRIVATE);
+                    profile_name.setText(sp.getString("name", ""));
+                    profile_image.setText(sp.getString("name", "").charAt(0) + "");
+                    profile_image.setImageDrawable(null);
+                    profile_image.setTextColor(Color.rgb(random.nextInt(256), random.nextInt(256), random.nextInt(256)));
+                    profile_image.setFillColor(Color.rgb(random.nextInt(256), random.nextInt(256), random.nextInt(256)));
+                }
+            });
+        } else {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    profile_name.setText("即刻登录，享受云同步");
+                    profile_image.setImageResource(R.drawable.ic_anonymous);
+                    profile_image.setText("");
+                    profile_image.setFillColor(Color.WHITE);
+                }
+            });
+        }
+
         login_cardview.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(SettingActivity.this, LoginActivity.class);
-                startActivityForResult(intent, 333);
+                if (!checkIfLogin()) {
+                    Intent intent = new Intent(SettingActivity.this, LoginActivity.class);
+                    startActivityForResult(intent, 333);
+                }else{
+                    popAlertDialog();
+                }
+            }
+        });
+
+        login_cardview.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                if(getSharedPreferences("UserInfo", MODE_PRIVATE).getBoolean("ifLogin", false)){
+                    Random random = new Random();
+                    profile_image.setTextColor(Color.rgb(random.nextInt(256), random.nextInt(256), random.nextInt(256)));
+                    profile_image.setFillColor(Color.rgb(random.nextInt(256), random.nextInt(256), random.nextInt(256)));
+                }
+                return true;
             }
         });
     }
@@ -156,7 +210,58 @@ public class SettingActivity extends PreferenceActivity implements Preference.On
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+    protected void onActivityResult(int requestCode, int resultCode, final Intent data) {
+        //super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 333 && (resultCode == 486 || resultCode == 487)) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Random random = new Random();
+                    profile_name.setText(data.getExtras().getString("name") + "");
+                    profile_image.setText(data.getExtras().getString("name").charAt(0) + "");
+                    profile_image.setImageDrawable(null);
+                    profile_image.setTextColor(Color.rgb(random.nextInt(256), random.nextInt(256), random.nextInt(256)));
+                    profile_image.setFillColor(Color.rgb(random.nextInt(256), random.nextInt(256), random.nextInt(256)));
+                }
+            });
+
+        }
+    }
+
+    private boolean checkIfLogin() {
+        SharedPreferences sp = getSharedPreferences("UserInfo", MODE_PRIVATE);
+        return sp.getBoolean("ifLogin", false);
+    }
+
+    private void popAlertDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(SettingActivity.this);
+        builder.setMessage("你确定要退出登录吗？")
+                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        SharedPreferences.Editor editor = getSharedPreferences("UserInfo", MODE_PRIVATE).edit();
+                        editor.putString("name", "none");
+                        editor.putString("tooken", "none");
+                        editor.putBoolean("ifLogin", false);
+                        editor.apply();
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                profile_name.setText("即刻登录，享受云同步");
+                                profile_image.setImageResource(R.drawable.ic_anonymous);
+                                profile_image.setText("");
+                                profile_image.setFillColor(Color.WHITE);
+                            }
+                        });
+                    }
+                })
+                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
     }
 }

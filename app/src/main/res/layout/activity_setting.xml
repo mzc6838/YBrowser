@@ -41,15 +41,18 @@
             android:focusable="true"
             android:foreground="?android:attr/selectableItemBackgroundBorderless">
 
-            <com.makeramen.roundedimageview.RoundedImageView
+            <com.thinkcool.circletextimageview.CircleTextImageView
+                android:id="@+id/profile_image"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:layout_gravity="center_vertical"
                 android:layout_marginStart="10dp"
                 android:src="@drawable/ic_anonymous"
-                app:riv_corner_radius="25dp" />
+                app:citv_text_size="32sp"
+                app:citv_border_width="0dp"/>
 
             <TextView
+                android:id="@+id/profile_name"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:layout_gravity="center_vertical"
@@ -57,7 +60,7 @@
                 android:layout_marginEnd="10dp"
                 android:text="即刻登录，享受云同步"
                 android:gravity="center_vertical"
-                android:textSize="24sp"/>
+                android:textSize="24sp" />
 
         </android.support.v7.widget.CardView>
 

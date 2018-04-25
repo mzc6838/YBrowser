@@ -21,7 +21,6 @@
             android:id="@+id/bookmark_toolbar"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:layout_scrollFlags="scroll|enterAlways"
             app:navigationIcon="@drawable/ic_exit"
             app:title="书签"
             android:background="#f2f2f2"/>
