@@ -1,16 +1,21 @@
 package com.mzc6838.ybrowser;
 
+import android.app.AlertDialog;
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -28,10 +33,16 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.tencent.smtt.sdk.DownloadListener;
 import com.tencent.smtt.sdk.WebSettings;
 import com.tencent.smtt.sdk.WebView;
 
 import org.litepal.crud.DataSupport;
+
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLDecoder;
 
 import static android.webkit.WebSettings.MIXED_CONTENT_ALWAYS_ALLOW;
 
@@ -151,7 +162,7 @@ public class WebViewFragment extends BackHandledFragment {
 
                 mainActivity.pageLink = web.getUrl();
                 mainActivity.pageTitle = web.getTitle();
-                ((EditText)mainActivity.findViewById(R.id.edit_box)).setHint(mainActivity.pageTitle);
+                ((EditText) mainActivity.findViewById(R.id.edit_box)).setHint(mainActivity.pageTitle);
                 mainActivity.setWindowInfo(mainActivity.pageTitle, mainActivity.pageLink, pageIcon, mainActivity.getPositionNow());
 
                 History history = new History();
@@ -168,7 +179,7 @@ public class WebViewFragment extends BackHandledFragment {
             public void onReceivedTitle(com.tencent.smtt.sdk.WebView webView, String title) {
                 mainActivity.setEdit_urlText("");
                 mainActivity.setEdit_urlHint(title);
-                if(isAdded())
+                if (isAdded())
                     mainActivity.setQRButtonImageDrawable(getResources().getDrawable(R.drawable.scanning));
                 mainActivity.pageTitle = title;
                 mainActivity.pageLink = webView.getUrl();
@@ -192,8 +203,8 @@ public class WebViewFragment extends BackHandledFragment {
 
                 int newWH = dp2px(35);
 
-                float scaleWidth = ((float)newWH) / width;
-                float scaleHeight = ((float)newWH) / height;
+                float scaleWidth = ((float) newWH) / width;
+                float scaleHeight = ((float) newWH) / height;
 
                 Matrix matrix = new Matrix();
                 matrix.postScale(scaleWidth, scaleHeight);
@@ -202,8 +213,18 @@ public class WebViewFragment extends BackHandledFragment {
                 super.onReceivedIcon(webView, bitmap);
             }
         });
+        webview.setDownloadListener(new DownloadListener() {
+            @Override
+            public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimeType, long contentLength) {
+                String fileName = "";
+
+                fileName = url.substring(url.lastIndexOf("/") + 1);
+
+                popDownloadAlert(url, fileName, mimeType);
+            }
+        });
         webview.canGoBack();
-        if(PRELOADURL.isEmpty())
+        if (PRELOADURL.isEmpty())
             webview.loadUrl(sharedPreferences.getString("change_first_page", "http://www.baidu.com"));
         else {
             webview.loadUrl(PRELOADURL);
@@ -292,10 +313,9 @@ public class WebViewFragment extends BackHandledFragment {
 
         @JavascriptInterface
         public void setColor(final String str) {
-            Log.d("setColor: ", str);
-            if(str.equals("null")){
+            if (str.equals("null")) {
                 mainActivity.setColor("#f2f2f2");
-            }else {
+            } else {
                 mainActivity.setColor(str);
             }
         }
@@ -329,12 +349,38 @@ public class WebViewFragment extends BackHandledFragment {
         return webview.getOriginalUrl();
     }
 
-    public Bitmap getPageIcon(){
+    public Bitmap getPageIcon() {
         return pageIcon;
     }
 
-    protected int dp2px(int dp){
-        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp,getResources().getDisplayMetrics());
+    protected int dp2px(int dp) {
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, getResources().getDisplayMetrics());
+    }
+
+    private void popDownloadAlert(final String url, final String fileName, final String mime) {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+
+        builder.setMessage(url + "想要下载\n" + fileName)
+                .setPositiveButton("允许", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Intent intent = new Intent(getActivity(), DownloadService.class);
+                        intent.putExtra("url", url);
+                        intent.putExtra("fileName", fileName);
+                        intent.putExtra("mime", mime);
+                        getActivity().startService(intent);
+                    }
+                })
+                .setNegativeButton("拒绝", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
     }
 
 }

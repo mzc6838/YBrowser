@@ -12,7 +12,7 @@ import java.util.List;
  * Created by mzc6838 on 2018/4/8.
  */
 
-public class bookmark_Adapter extends RecyclerView.Adapter<bookmark_Adapter.ViewHolder> {
+public class Bookmark_Adapter extends RecyclerView.Adapter<Bookmark_Adapter.ViewHolder> {
 
     private List<Bookmark> bookmarkList;
     private OnItemClickListener onItemClickListener;
@@ -31,7 +31,7 @@ public class bookmark_Adapter extends RecyclerView.Adapter<bookmark_Adapter.View
         }
     }
 
-    public bookmark_Adapter(List<Bookmark> _bookmarkList){
+    public Bookmark_Adapter(List<Bookmark> _bookmarkList){
         bookmarkList = _bookmarkList;
     }
 

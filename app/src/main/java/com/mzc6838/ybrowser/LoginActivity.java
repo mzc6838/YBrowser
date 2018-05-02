@@ -113,7 +113,6 @@ public class LoginActivity extends Activity implements View.OnClickListener {
             }
             case (R.id.login_or_register_button): {
                 if (IS_REGISTER) {
-                    Log.d("IS_REGISTER", "register");
                     if (validateName(userName, userName.getEditText().getText().toString())
                             && validatePassword(password, password.getEditText().getText().toString())
                             && validateEmail(emailAddress, emailAddress.getEditText().getText().toString())
@@ -185,8 +184,6 @@ public class LoginActivity extends Activity implements View.OnClickListener {
 
                     }
                 } else {
-                    Log.d("IS_REGISTER", "login");
-
                     if (validateName(userName, userName.getEditText().getText().toString())
                             && validatePassword(password, password.getEditText().getText().toString())) {
 
@@ -213,7 +210,6 @@ public class LoginActivity extends Activity implements View.OnClickListener {
 
                             @Override
                             public void onResponse(Call call, Response response) throws IOException {
-                                //Log.d("onResponse233: \n", response.body().string());
                                 Gson gson = new Gson();
                                 ErrorResponse errorResponse = gson.fromJson(response.body().string(), ErrorResponse.class);
                                 switch (errorResponse.getErrCode()) {
@@ -280,7 +276,6 @@ public class LoginActivity extends Activity implements View.OnClickListener {
                         public void onResponse(Call call, Response response) throws IOException {
                             Gson gson = new Gson();
                             String re = response.body().string();
-                            Log.d("onResponse: ", re);
                             ErrorResponse errorResponse = gson.fromJson(re, ErrorResponse.class);
                             switch (errorResponse.getErrCode()) {
                                 case (1):{

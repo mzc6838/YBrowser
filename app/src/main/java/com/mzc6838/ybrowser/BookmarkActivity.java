@@ -64,7 +64,7 @@ public class BookmarkActivity extends AppCompatActivity {
     private RecyclerView bookmarkList_recyclerview;
     private TextView bookhint;
     private static List<Bookmark> bookmarkList;
-    private static bookmark_Adapter bookmark_adapter;
+    private static Bookmark_Adapter bookmark_adapter;
     private PopupWindow popupWindow;
     private Toolbar toolbar;
     private SharedPreferences sp;
@@ -97,7 +97,7 @@ public class BookmarkActivity extends AppCompatActivity {
             bookhint.setVisibility(View.GONE);
             bookmarkList_recyclerview.setVisibility(View.VISIBLE);
         }
-        bookmark_adapter = new bookmark_Adapter(bookmarkList);
+        bookmark_adapter = new Bookmark_Adapter(bookmarkList);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         bookmarkList_recyclerview.setLayoutManager(linearLayoutManager);
         linearLayoutManager.setOrientation(OrientationHelper.VERTICAL);
@@ -105,7 +105,7 @@ public class BookmarkActivity extends AppCompatActivity {
         bookmarkList_recyclerview.setItemAnimator(new DefaultItemAnimator());
         bookmarkList_recyclerview.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
 
-        bookmark_adapter.setOnItemClickListener(new bookmark_Adapter.OnItemClickListener() {
+        bookmark_adapter.setOnItemClickListener(new Bookmark_Adapter.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
                 Intent intent = new Intent();
@@ -116,7 +116,7 @@ public class BookmarkActivity extends AppCompatActivity {
             }
         });
 
-        bookmark_adapter.setOnItemLongClickListener(new bookmark_Adapter.OnItemLongClickListener() {
+        bookmark_adapter.setOnItemLongClickListener(new Bookmark_Adapter.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(View view, final int position) {
                 PopupMenu popupMenu = new PopupMenu(BookmarkActivity.this, view);
@@ -188,7 +188,6 @@ public class BookmarkActivity extends AppCompatActivity {
                         if (!sp.getBoolean("ifLogin", false)) {
                             popAlertDialog();
                         } else {
-                            //TODO:上传书签
                             Toast.makeText(BookmarkActivity.this, "上传中，请稍后", Toast.LENGTH_SHORT).show();
                             Gson gson = new Gson();
                             BookmarkServer bookmarkUpload = new BookmarkServer();
@@ -250,7 +249,6 @@ public class BookmarkActivity extends AppCompatActivity {
                         if (!sp.getBoolean("ifLogin", false)) {
                             popAlertDialog();
                         } else {
-                            //TODO:下载书签
                             Toast.makeText(BookmarkActivity.this, "正在同步至本地, 请稍后", Toast.LENGTH_SHORT).show();
                             OkHttpClient okHttpClient = new OkHttpClient();
                             FormBody.Builder builder = new FormBody.Builder();

@@ -29,7 +29,6 @@ public class WelcomeActivity extends Activity {
         {
             if(MainActivity.WELCOME_SHOULD_END == 999)
             {
-                Log.d("Welcome", "has ended");
                 break;
             }
 
