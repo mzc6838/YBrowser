@@ -33,6 +33,9 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.tencent.smtt.export.external.interfaces.GeolocationPermissionsCallback;
+import com.tencent.smtt.export.external.interfaces.WebResourceError;
+import com.tencent.smtt.export.external.interfaces.WebResourceRequest;
 import com.tencent.smtt.sdk.DownloadListener;
 import com.tencent.smtt.sdk.WebSettings;
 import com.tencent.smtt.sdk.WebView;
@@ -97,6 +100,13 @@ public class WebViewFragment extends BackHandledFragment {
         webSettings.setBuiltInZoomControls(true);
         webSettings.setDisplayZoomControls(false);
         webSettings.setMixedContentMode(MIXED_CONTENT_ALWAYS_ALLOW);
+        webSettings.setDatabaseEnabled(true);
+        webSettings.setGeolocationEnabled(true);
+
+        String dir = getActivity().getApplicationContext().getDir("database", Context.MODE_PRIVATE).getPath();
+
+        webSettings.setGeolocationDatabasePath(dir);
+        webSettings.setDomStorageEnabled(true);
 
         switch (sharedPreferences.getString("change_UA", "")) {
             case ("Android"): {
@@ -151,6 +161,13 @@ public class WebViewFragment extends BackHandledFragment {
             public void onPageStarted(WebView webView, String s, Bitmap bitmap) {
 
                 super.onPageStarted(webView, s, bitmap);
+            }
+
+            @Override
+            public void onReceivedError(WebView webView, WebResourceRequest webResourceRequest, WebResourceError webResourceError) {
+                super.onReceivedError(webView, webResourceRequest, webResourceError);
+                mainActivity.setEdit_urlHint("出错啦！");
+                mainActivity.pageTitle = ("出错啦！");
             }
 
             @Override
@@ -212,6 +229,31 @@ public class WebViewFragment extends BackHandledFragment {
                 mainActivity.setWindowInfo(getPageTitle(), getPageUrl(), Bitmap.createBitmap(bitmap, 0, 0, width, height, matrix, true), mainActivity.getPositionNow());
                 super.onReceivedIcon(webView, bitmap);
             }
+
+            @Override
+            public void onGeolocationPermissionsShowPrompt(final String origin, final GeolocationPermissionsCallback callback) {
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                builder.setTitle("位置信息")
+                        .setMessage(origin + "想要获取您的位置信息")
+                        .setCancelable(true)
+                        .setPositiveButton("允许", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                callback.invoke(origin, true, true);
+                            }
+                        })
+                        .setNegativeButton("拒绝", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                callback.invoke(origin, false, true);
+                            }
+                        });
+                AlertDialog alertDialog = builder.create();
+                alertDialog.show();
+
+                super.onGeolocationPermissionsShowPrompt(origin, callback);
+            }
         });
         webview.setDownloadListener(new DownloadListener() {
             @Override
@@ -219,8 +261,13 @@ public class WebViewFragment extends BackHandledFragment {
                 String fileName = "";
 
                 fileName = url.substring(url.lastIndexOf("/") + 1);
+                try {
+                    URL dUrl = new URL(url);
+                    popDownloadAlert(dUrl.getHost(), fileName, mimeType);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
-                popDownloadAlert(url, fileName, mimeType);
             }
         });
         webview.canGoBack();
@@ -361,7 +408,8 @@ public class WebViewFragment extends BackHandledFragment {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
-        builder.setMessage(url + "想要下载\n" + fileName)
+        builder.setTitle(url + "想要下载")
+                .setMessage(fileName)
                 .setPositiveButton("允许", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {

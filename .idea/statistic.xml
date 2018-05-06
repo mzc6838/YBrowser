@@ -5,6 +5,7 @@
       <list>
         <option value="$PROJECT_DIR$/app/src/main/java/com/google" />
         <option value="$PROJECT_DIR$/app/src/main/jniLibs" />
+        <option value="$PROJECT_DIR$/app/build/generated" />
       </list>
     </option>
   </component>

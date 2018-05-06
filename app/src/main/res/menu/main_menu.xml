@@ -27,10 +27,4 @@
         app:showAsAction="never"
         android:icon="@drawable/ic_history"/>
 
-    <item
-        android:id="@+id/help"
-        android:title="帮助"
-        app:showAsAction="never"
-        android:icon="@drawable/ic_help"/>
-
 </menu>

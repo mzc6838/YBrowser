@@ -18,6 +18,8 @@ import android.graphics.PixelFormat;
 import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -279,6 +281,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
             }
         });
+        edit_url.setHint("空白页");
 
         multi_window_toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
@@ -374,8 +377,23 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                         }
                     });
                 }else {
-                    Toast.makeText(MainActivity.this, "请检查你的互联网连接", Toast.LENGTH_SHORT).show();
-                    getSharedPreferences("UserInfo", MODE_PRIVATE).edit().putBoolean("ifLogin", false).apply();
+                    final Runnable runnable = new Runnable() {
+                        @Override
+                        public void run() {
+                            try{
+                                Toast.makeText(MainActivity.this, "请检查你的互联网连接", Toast.LENGTH_SHORT).show();
+                                getSharedPreferences("UserInfo", MODE_PRIVATE).edit().putBoolean("ifLogin", false).apply();
+                            }catch (Exception e){
+                                e.printStackTrace();
+                            }
+                        }
+                    };
+                    new Thread(){
+                        @Override
+                        public void run() {
+                            new Handler(Looper.getMainLooper()).post(runnable);
+                        }
+                    }.start();
                 }
             }
         }).start();
@@ -627,10 +645,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                     case (R.id.history): {
                         Intent intent = new Intent(MainActivity.this, HistoryActivity.class);
                         startActivityForResult(intent, 222);
-                        return true;
-                    }
-                    case (R.id.help): {
-                        Log.d("onMenuItemClick:  ", "help");
                         return true;
                     }
                     default:
@@ -887,12 +901,25 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     }
 
     public boolean isNetworkConnected(Context context) {
-        ConnectivityManager manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        if (manager.getActiveNetworkInfo() != null) {
-            return manager.getActiveNetworkInfo().isAvailable();
+        Runtime runtime = Runtime.getRuntime();
+        int ret = -1;
+        try{
+            Process process = runtime.exec("ping -c 3 www.baidu.com");
+            ret = process.waitFor();
+        }catch (Exception e ){
+            e.printStackTrace();
+        }
+        if(ret == 0){
+            return true;
         }
         return false;
     }
+//        ConnectivityManager manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+//        if (manager.getActiveNetworkInfo() != null) {
+//            return manager.getActiveNetworkInfo().isAvailable();
+//        }
+//        return false;
+//    }
 }
 
 
