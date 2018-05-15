@@ -19,7 +19,7 @@ public class BookmarkServer {
         return bookmark;
     }
 
-    public void setBookmark(List<com.mzc6838.ybrowser.Bookmark> bookmark) {
+    public void setBookmark(List<com.BaseClass.Bookmark> bookmark) {
         for(int i = 0; i < bookmark.size(); i++){
             this.bookmark.add(new Bookmark(bookmark.get(i).getTitle(), bookmark.get(i).getUrl()));
         }

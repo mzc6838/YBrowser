@@ -1,10 +1,13 @@
-package com.mzc6838.ybrowser;
+package com.Adapter;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import com.BaseClass.Bookmark;
+import com.mzc6838.ybrowser.R;
 
 import java.util.List;
 

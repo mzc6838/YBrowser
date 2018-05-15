@@ -1,4 +1,4 @@
-package com.mzc6838.ybrowser;
+package com.BaseClass;
 
 import android.graphics.Bitmap;
 import android.widget.ImageView;

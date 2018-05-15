@@ -1,4 +1,4 @@
-package com.mzc6838.ybrowser;
+package com.BaseClass;
 
 import org.litepal.crud.DataSupport;
 

@@ -1,4 +1,4 @@
-package com.mzc6838.ybrowser;
+package com.Adapter;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -6,6 +6,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.mzc6838.ybrowser.MainActivity;
+import com.mzc6838.ybrowser.R;
+import com.BaseClass.WindowInfo;
 
 import java.util.List;
 

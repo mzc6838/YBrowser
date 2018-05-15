@@ -1,12 +1,13 @@
-package com.mzc6838.ybrowser;
+package com.Adapter;
 
-import android.support.design.widget.TextInputEditText;
 import android.support.v7.widget.RecyclerView;
-import android.text.Layout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import com.BaseClass.History;
+import com.mzc6838.ybrowser.R;
 
 import java.util.List;
 

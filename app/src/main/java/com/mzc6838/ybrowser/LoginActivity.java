@@ -5,27 +5,22 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.Nullable;
-import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import com.BaseClass.ErrorResponse;
 import com.google.gson.Gson;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -100,10 +95,12 @@ public class LoginActivity extends Activity implements View.OnClickListener {
         switch (v.getId()) {
             case (R.id.if_register): {
                 if (!IS_REGISTER) {
+                    title.setText("注册一下");
                     registerLayout.setVisibility(View.VISIBLE);
                     ifRegistered.setText("已有账号？返回登录");
                     loginOrRegister.setText("注册");
                 } else {
+                    title.setText("登录一下");
                     registerLayout.setVisibility(View.GONE);
                     ifRegistered.setText("没有账号？点击注册");
                     loginOrRegister.setText("登录");

@@ -3,7 +3,7 @@
     <dbname value="YBroserDataBase"/>
     <version value="3"/>
     <list>
-        <mapping class="com.mzc6838.ybrowser.Bookmark"/>
-        <mapping class="com.mzc6838.ybrowser.History"/>
+        <mapping class="com.BaseClass.Bookmark"/>
+        <mapping class="com.BaseClass.History"/>
     </list>
 </litepal>
