@@ -1,7 +1,6 @@
 # YBrowser
-a new broser
-# 新手怎么了？新手吃你家大米了？
+
+一个轻量化的浏览器，提供书签、历史记录、云同步等功能。
 
 
-
-##我就是英语废谢谢
+![Image](http://toothless.mzc6838.xyz/browser/logo.png)
