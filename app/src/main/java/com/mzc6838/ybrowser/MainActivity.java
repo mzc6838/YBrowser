@@ -16,7 +16,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.Drawable;
-import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -60,6 +59,10 @@ import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.Adapter.multi_window_Adapter;
+import com.BaseClass.Bookmark;
+import com.BaseClass.ErrorResponse;
+import com.BaseClass.WindowInfo;
 import com.github.fafaldo.fabtoolbar.widget.FABToolbarLayout;
 import com.google.gson.Gson;
 import com.google.zxing.client.android.CaptureActivity;
@@ -80,8 +83,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-
-import static android.view.KeyEvent.KEYCODE_BACK;
 
 public class MainActivity extends FragmentActivity implements View.OnClickListener, BackHandledFragment.BackHandledInterface {
 
@@ -914,12 +915,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         }
         return false;
     }
-//        ConnectivityManager manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-//        if (manager.getActiveNetworkInfo() != null) {
-//            return manager.getActiveNetworkInfo().isAvailable();
-//        }
-//        return false;
-//    }
+
 }
 
 

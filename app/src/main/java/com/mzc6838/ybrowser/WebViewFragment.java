@@ -3,26 +3,21 @@ package com.mzc6838.ybrowser;
 import android.app.AlertDialog;
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.widget.ContentLoadingProgressBar;
-import android.text.SpannableString;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -30,22 +25,19 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.JavascriptInterface;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.BaseClass.History;
+import com.Serivce.DownloadService;
 import com.tencent.smtt.export.external.interfaces.GeolocationPermissionsCallback;
-import com.tencent.smtt.export.external.interfaces.WebResourceError;
-import com.tencent.smtt.export.external.interfaces.WebResourceRequest;
 import com.tencent.smtt.sdk.DownloadListener;
+import com.tencent.smtt.sdk.WebChromeClient;
+import com.tencent.smtt.sdk.WebIconDatabase;
 import com.tencent.smtt.sdk.WebSettings;
 import com.tencent.smtt.sdk.WebView;
 
-import org.litepal.crud.DataSupport;
-
-import java.net.HttpURLConnection;
+import java.io.File;
 import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLDecoder;
 
 import static android.webkit.WebSettings.MIXED_CONTENT_ALWAYS_ALLOW;
 
@@ -108,6 +100,8 @@ public class WebViewFragment extends BackHandledFragment {
         webSettings.setGeolocationDatabasePath(dir);
         webSettings.setDomStorageEnabled(true);
 
+        WebIconDatabase.getInstance().open(getDirs(mainActivity.getCacheDir().getAbsolutePath()+"/icons/"));
+
         switch (sharedPreferences.getString("change_UA", "")) {
             case ("Android"): {
                 webSettings.setUserAgent("Mozilla/5.0 (Linux; Android " + Build.VERSION.RELEASE + "; " + Build.MODEL + ") AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.109 Mobile Safari/537.36");
@@ -164,18 +158,13 @@ public class WebViewFragment extends BackHandledFragment {
             }
 
             @Override
-            public void onReceivedError(WebView webView, WebResourceRequest webResourceRequest, WebResourceError webResourceError) {
-                super.onReceivedError(webView, webResourceRequest, webResourceError);
-                mainActivity.setEdit_urlHint("出错啦！");
-                mainActivity.pageTitle = ("出错啦！");
-            }
-
-            @Override
             public void onPageFinished(WebView web, String s) {
 
                 web.loadUrl("javascript:window.java_obj.setColor("
-                        + "new Function(\"var t = document.querySelector('meta[name=\\\"theme-color\\\"]');if(t == null){ return \\\"null\\\";}else{return t.getAttribute('content');}\")()"
+                        + "new Function(\"var t = document.querySelector('meta[name=\\\"theme-color\\\"]');" +
+                        "if(t == null){ return \\\"null\\\";}else{return t.getAttribute('content');}\")()"
                         + ");");
+
 
                 mainActivity.pageLink = web.getUrl();
                 mainActivity.pageTitle = web.getTitle();
@@ -191,82 +180,15 @@ public class WebViewFragment extends BackHandledFragment {
                 super.onPageFinished(webview, s);
             }
         });
-        webview.setWebChromeClient(new com.tencent.smtt.sdk.WebChromeClient() {
-            @Override
-            public void onReceivedTitle(com.tencent.smtt.sdk.WebView webView, String title) {
-                mainActivity.setEdit_urlText("");
-                mainActivity.setEdit_urlHint(title);
-                if (isAdded())
-                    mainActivity.setQRButtonImageDrawable(getResources().getDrawable(R.drawable.scanning));
-                mainActivity.pageTitle = title;
-                mainActivity.pageLink = webView.getUrl();
-            }
-
-            @Override
-            public void onProgressChanged(WebView webView, int i) {
-                if (i == 100) {
-                    progressBar.setVisibility(View.INVISIBLE);
-                } else {
-                    progressBar.setVisibility(View.VISIBLE);
-                    progressBar.setProgress(i);
-                }
-            }
-
-            @Override
-            public void onReceivedIcon(WebView webView, Bitmap bitmap) {
-                pageIcon = bitmap;
-                int width = bitmap.getWidth();
-                int height = bitmap.getHeight();
-
-                int newWH = dp2px(35);
-
-                float scaleWidth = ((float) newWH) / width;
-                float scaleHeight = ((float) newWH) / height;
-
-                Matrix matrix = new Matrix();
-                matrix.postScale(scaleWidth, scaleHeight);
-
-                mainActivity.setWindowInfo(getPageTitle(), getPageUrl(), Bitmap.createBitmap(bitmap, 0, 0, width, height, matrix, true), mainActivity.getPositionNow());
-                super.onReceivedIcon(webView, bitmap);
-            }
-
-            @Override
-            public void onGeolocationPermissionsShowPrompt(final String origin, final GeolocationPermissionsCallback callback) {
-
-                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-                builder.setTitle("位置信息")
-                        .setMessage(origin + "想要获取您的位置信息")
-                        .setCancelable(true)
-                        .setPositiveButton("允许", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                callback.invoke(origin, true, true);
-                            }
-                        })
-                        .setNegativeButton("拒绝", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                callback.invoke(origin, false, true);
-                            }
-                        });
-                AlertDialog alertDialog = builder.create();
-                alertDialog.show();
-
-                super.onGeolocationPermissionsShowPrompt(origin, callback);
-            }
-        });
+        webview.setWebChromeClient(new myWebChromeClient());
         webview.setDownloadListener(new DownloadListener() {
             @Override
             public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimeType, long contentLength) {
                 String fileName = "";
 
                 fileName = url.substring(url.lastIndexOf("/") + 1);
-                try {
-                    URL dUrl = new URL(url);
-                    popDownloadAlert(dUrl.getHost(), fileName, mimeType);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+
+                popDownloadAlert(url, fileName, mimeType);
 
             }
         });
@@ -277,7 +199,7 @@ public class WebViewFragment extends BackHandledFragment {
             webview.loadUrl(PRELOADURL);
             PRELOADURL = "";
         }
-        webview.setOnScrollChangeListener(new com.tencent.smtt.sdk.WebView.OnScrollChangeListener() {
+        webview.setOnScrollChangeListener(new View.OnScrollChangeListener() {
             @Override
             public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
                 if (scrollY - oldScrollY > 20) {
@@ -407,8 +329,17 @@ public class WebViewFragment extends BackHandledFragment {
     private void popDownloadAlert(final String url, final String fileName, final String mime) {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        String host = "";
 
-        builder.setTitle(url + "想要下载")
+        try{
+            URL dUrl = new URL(url);
+            host = dUrl.getHost();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+
+        builder.setTitle(host + "想要下载")
                 .setMessage(fileName)
                 .setPositiveButton("允许", new DialogInterface.OnClickListener() {
                     @Override
@@ -429,6 +360,89 @@ public class WebViewFragment extends BackHandledFragment {
         AlertDialog dialog = builder.create();
         dialog.show();
 
+    }
+
+    public class myWebChromeClient extends WebChromeClient{
+        @Override
+        public void onReceivedTitle(com.tencent.smtt.sdk.WebView webView, String title) {
+            mainActivity.setEdit_urlText("");
+            mainActivity.setEdit_urlHint(title);
+            if (isAdded())
+                mainActivity.setQRButtonImageDrawable(getResources().getDrawable(R.drawable.scanning));
+            mainActivity.pageTitle = title;
+            mainActivity.pageLink = webView.getUrl();
+        }
+
+        @Override
+        public void onProgressChanged(WebView webView, int i) {
+            if (i == 100) {
+                progressBar.setVisibility(View.INVISIBLE);
+            } else {
+                progressBar.setVisibility(View.VISIBLE);
+                progressBar.setProgress(i);
+            }
+        }
+
+        @Override
+        public void onReceivedIcon(WebView webView, Bitmap bitmap) {
+
+            super.onReceivedIcon(webView, bitmap);
+            Log.d("onReceivedIcon: ", 1 + "");
+            //bitmap = webView.getFavicon();
+
+            pageIcon = bitmap;
+            int width = bitmap.getWidth();
+            int height = bitmap.getHeight();
+
+            int newWH = dp2px(35);
+
+            float scaleWidth = ((float) newWH) / width;
+            float scaleHeight = ((float) newWH) / height;
+
+            Matrix matrix = new Matrix();
+            matrix.postScale(scaleWidth, scaleHeight);
+
+            mainActivity.setWindowInfo(getPageTitle(), getPageUrl(), Bitmap.createBitmap(bitmap, 0, 0, width, height, matrix, true), mainActivity.getPositionNow());
+
+        }
+
+        @Override
+        public void onGeolocationPermissionsShowPrompt(final String origin, final GeolocationPermissionsCallback callback) {
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity);
+            builder.setTitle("位置信息")
+                    .setMessage(origin + "想要获取您的位置信息")
+                    .setCancelable(true)
+                    .setPositiveButton("允许", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            callback.invoke(origin, true, false);
+                            superCallback(origin, callback);
+                        }
+                    })
+                    .setNegativeButton("拒绝", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            callback.invoke(origin, false, false);
+                            superCallback(origin, callback);
+                        }
+                    });
+            AlertDialog alertDialog = builder.create();
+            alertDialog.show();
+        }
+
+        public void superCallback(String origin, GeolocationPermissionsCallback callback){
+            super.onGeolocationPermissionsShowPrompt(origin, callback);
+        }
+    }
+
+    public static String getDirs(String path)
+    {
+        File dir = new File(path);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        return path;
     }
 
 }

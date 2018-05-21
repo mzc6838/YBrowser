@@ -34,6 +34,9 @@ import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.Adapter.Bookmark_Adapter;
+import com.BaseClass.Bookmark;
+import com.BaseClass.ErrorResponse;
 import com.google.gson.Gson;
 import com.BookmarkWithServer.BookmarkServer;
 
